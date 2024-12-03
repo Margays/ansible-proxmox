@@ -1,0 +1,37 @@
+---
+- name: Configure proxmox
+  hosts: proxmox
+  tasks:
+    - name: Setup proxmox
+      debug:
+        msg: "Setup proxmox"
+    - name: Setup proxmox pool
+      proxmox_pool:
+        name: "test"
+        comment: "Test pool"
+        state: absent
+    - name: Setup proxmox pool
+      check_mode: true
+      proxmox_cluster_options:
+        bwlimit: 100
+# - name: Setup nodes
+#   hosts: k8s_cluster
+#   become: true
+#   roles:
+#     - role: kubesmith.common.swap
+#       vars:
+#         common_swap_state: absent
+#     - role: kubesmith.oci.runc
+#       vars:
+#         oci_runc_version: "1.1.13"
+#     - role: kubesmith.cri.containerd
+#       vars:
+#         cri_containerd_version: "1.7.20"
+#     - role: kubesmith.k8s.core
+#       vars:
+#         k8s_core_kubernetes_version: "1.30"
+#     - role: kubesmith.k8s.cluster
+#       # vars:
+#       #   k8s_core_kubernetes_version: "1.30"
+#   vars:
+#     cache_dir: /tmp/kubesmith
