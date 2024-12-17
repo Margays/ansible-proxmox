@@ -5,15 +5,19 @@
     - name: Setup proxmox
       debug:
         msg: "Setup proxmox"
+    # - name: Setup proxmox pool
+    #   proxmox_pool:
+    #     name: "test"
+    #     comment: "Test pool"
+    #     state: present
     - name: Setup proxmox pool
-      proxmox_pool:
-        name: "test"
-        comment: "Test pool"
-        state: absent
-    - name: Setup proxmox pool
-      check_mode: true
       proxmox_cluster_options:
-        bwlimit: 100
+        description: "Proxmox Casiopeia Cluster"
+      register: proxmox_cluster_options
+
+    - name: Show diff
+      debug:
+        var: proxmox_cluster_options
 # - name: Setup nodes
 #   hosts: k8s_cluster
 #   become: true

@@ -2,7 +2,6 @@ import subprocess
 import json
 from typing import List, Optional, Dict, Any
 from copy import deepcopy
-from dataclasses import dataclass
 
 
 class ParameterSpec:
@@ -58,6 +57,17 @@ class Data:
 
         return self
 
+    def diff(self, data: 'Data') -> Dict[str, str]:
+        diff: Dict[str, str] = {}
+        for key, value in self._data.items():
+            if value is None:
+                continue
+
+            if value.strip() != data.get_value(key).strip():
+                diff[key] = value
+
+        return diff
+
     def to_dict(self, skip_none: bool = True) -> Dict[str, str]:
         data: Dict[str, str] = {}
         for key, value in self._data.items():
@@ -98,7 +108,7 @@ class Pvesh:
         (stdout, stderr) = process.communicate()
         if process.returncode != 0:
             raise Exception(
-                f"Failed to execute pvesh command: {stderr.decode('utf-8')}"
+                f"Pvesh command {command} failed with error: {stderr.decode('utf-8')}"
             )
 
         if stdout == b"":

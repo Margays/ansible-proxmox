@@ -56,25 +56,40 @@ updated_fields:
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.pve import Pvesh, Result
 from typing import List, Dict
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class Pool:
+    poolid: Optional[str] = None
+    comment: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, str]):
+        return cls(
+            poolid=data.get('poolid', None),
+            comment=data.get('comment', None)
+        )
 
 
 class ProxmoxPool:
     def __init__(self, module: AnsibleModule):
         self.module = module
-        self.name: str = module.params['name']
+        self._pool = Pool.from_dict(module.params)
         self.state: str = module.params['state']
-        self.comment: str = module.params["comment"]
         self._path = "pools"
 
-    def lookup(self) -> Dict[str, str]:
+    def lookup(self) -> Optional[Pool]:
         try:
             request = Pvesh(f"{self._path}")
             pools_list: List[Dict[str, str]] = request.get()
-            for pool in pools_list:
-                if pool['poolid'] == self.name:
+            for raw_pool in pools_list:
+                pool = Pool.from_dict(raw_pool)
+                if pool.poolid == self._pool.poolid:
                     return pool
 
-            return {}
+            return None
 
         except Exception as e:
             self.module.fail_json(msg=e.message, status_code=e.status_code)
@@ -84,7 +99,7 @@ class ProxmoxPool:
             return Result(status=True)
 
         try:
-            request = Pvesh(f"{self._path}").add_option("poolid", self.name)
+            request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
             request.delete()
             return Result(status=True)
         except Exception as e:
@@ -94,9 +109,9 @@ class ProxmoxPool:
         if self.module.check_mode:
             return Result(status=True)
 
-        request = Pvesh(self._path).add_option("poolid", self.name)
+        request = Pvesh(self._path).add_option("poolid", self._pool.poolid)
         if self.comment:
-            request.add_option("comment", self.comment)
+            request.add_option("comment", self._pool.comment)
 
         try:
             request.create()

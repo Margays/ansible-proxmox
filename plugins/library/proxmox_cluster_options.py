@@ -46,20 +46,14 @@ class ClusterOptionsManager:
         lookup = self.lookup()
         expected = Data(self._specs).load(self.module.params)
 
-        updated_fields = []
-        for key, value in expected.to_dict().items():
-            if lookup.get_value(key) != value:
-                updated_fields.append(key)
-
-        if not updated_fields:
-            return Result(status=False)
+        updated_fields = expected.diff(lookup)
 
         if self.module.check_mode or not updated_fields:
             return Result(status=bool(updated_fields), changes=updated_fields)
 
         request = Pvesh(f"{self._path}")
-        for key in updated_fields:
-            request.add_option(key, expected[key])
+        for key, value in updated_fields.items():
+            request.add_option(key, value)
 
         try:
             request.set()
@@ -92,8 +86,7 @@ def main():
         ParameterSpec("user-tag-access"),
         ParameterSpec("webauthn"),
     ]
-    argument_spec = {}
-    argument_spec.update({spec.name(): spec.to_spec() for spec in params})
+    argument_spec = {spec.name(): spec.to_spec() for spec in params}
 
     module = AnsibleModule(
         argument_spec = argument_spec,
@@ -104,7 +97,7 @@ def main():
     result = manager.modify()
 
     if result.error:
-        module.fail_json(msg=result.error.message)
+        module.fail_json(msg=str(result.error))
     else:
         changed = result.status
         result = {
