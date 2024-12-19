@@ -5,14 +5,16 @@
     - name: Setup proxmox
       debug:
         msg: "Setup proxmox"
-    # - name: Setup proxmox pool
-    #   proxmox_pool:
-    #     name: "test"
-    #     comment: "Test pool"
-    #     state: present
+
     - name: Setup proxmox pool
+      proxmox_pool:
+        poolid: "test"
+        comment: "Test pool"
+        state: present
+
+    - name: Configure cluster options
       proxmox_cluster_options:
-        description: "Proxmox Casiopeia Cluster"
+        description: "Proxmox Casiopeia Clusterzz"
       register: proxmox_cluster_options
 
     - name: Show diff

@@ -56,7 +56,7 @@ updated_fields:
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.pve import Pvesh, Result
 from typing import List, Dict
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Optional
 
 
@@ -71,6 +71,20 @@ class Pool:
             poolid=data.get('poolid', None),
             comment=data.get('comment', None)
         )
+    
+    def to_dict(self) -> Dict[str, str]:
+        return asdict(self)
+    
+    def diff(self, other: Optional['Pool']) -> Dict[str, str]:
+        diff: Dict[str, str] = {}
+        for key, value in asdict(self).items():
+            if value is None:
+                continue
+
+            if value != getattr(other, key, None):
+                diff[key] = value
+
+        return diff
 
 
 class ProxmoxPool:
@@ -110,7 +124,7 @@ class ProxmoxPool:
             return Result(status=True)
 
         request = Pvesh(self._path).add_option("poolid", self._pool.poolid)
-        if self.comment:
+        if self._pool.comment:
             request.add_option("comment", self._pool.comment)
 
         try:
@@ -121,29 +135,18 @@ class ProxmoxPool:
 
     def modify(self) -> Result:
         lookup = self.lookup()
-        expected_pool = {
-            "poolid": self.name,
-            "comment": self.comment,
-        }
+        diff = self._pool.diff(lookup)
 
-        updated_fields = []
-        for key, value in expected_pool.items():
-            if lookup.get(key, None) != value:
-                updated_fields.append(key)
+        if self.module.check_mode or not diff:
+            return Result(status=bool(diff), changes=diff)
 
-        if not updated_fields:
-            return Result(status=False)
-
-        if self.module.check_mode or not updated_fields:
-            return Result(status=bool(updated_fields), changes=updated_fields)
-
-        request = Pvesh(f"{self._path}").add_option("poolid", self.name)
-        if self.comment:
-            request.add_option("comment", self.comment)
+        request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
+        for key, value in diff.items():
+            request.add_option(key, value)
 
         try:
             request.set()
-            return Result(status=True, changes=updated_fields)
+            return Result(status=True, changes=diff)
         except Exception as e:
             return Result(status=False, error=e)
 
@@ -151,7 +154,7 @@ class ProxmoxPool:
 def main():
     module = AnsibleModule(
         argument_spec = dict(
-            name=dict(type='str', required=True, aliases=['poolid']),
+            poolid=dict(type='str', required=True),
             state=dict(default='present', choices=['present', 'absent'], type='str'),
             comment=dict(default="", type='str'),
         ),
@@ -173,11 +176,12 @@ def main():
             result = pool.modify()
 
     if result.error:
-        module.fail_json(name=pool.name, msg=result.error.message)
+        module.fail_json(msg=str(result.error))
     else:
         changed = result.status
+        lookup = pool.lookup()
         result = {
-            "data": pool.lookup(),
+            "data": lookup.to_dict() if lookup else None,
             "updated_fields": result.changes,
             "changed": changed,
         }
