@@ -2,10 +2,6 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    - name: Setup proxmox
-      debug:
-        msg: "Setup proxmox"
-
     - name: Setup proxmox pool
       proxmox_pool:
         poolid: "test"
@@ -14,30 +10,37 @@
 
     - name: Configure cluster options
       proxmox_cluster_options:
-        description: "Proxmox Casiopeia Clusterzz"
-      register: proxmox_cluster_options
+        description: "Proxmox Casiopeia Cluster"
 
-    - name: Show diff
-      debug:
-        var: proxmox_cluster_options
-# - name: Setup nodes
-#   hosts: k8s_cluster
-#   become: true
-#   roles:
-#     - role: kubesmith.common.swap
-#       vars:
-#         common_swap_state: absent
-#     - role: kubesmith.oci.runc
-#       vars:
-#         oci_runc_version: "1.1.13"
-#     - role: kubesmith.cri.containerd
-#       vars:
-#         cri_containerd_version: "1.7.20"
-#     - role: kubesmith.k8s.core
-#       vars:
-#         k8s_core_kubernetes_version: "1.30"
-#     - role: kubesmith.k8s.cluster
-#       # vars:
-#       #   k8s_core_kubernetes_version: "1.30"
-#   vars:
-#     cache_dir: /tmp/kubesmith
+    - name: Create VM
+      proxmox_node_qemu:
+        node: "testprox"
+        vmid: "101"
+        name: "testvm"
+        cores: 4
+        memory: 4096
+        tags: "test"
+        pool: "test"
+        net:
+          - idx: 0
+            model: virtio
+            bridge: vmbr0
+            tag: 101
+          - idx: 1
+            model: virtio
+            bridge: vmbr0
+            tag: 102
+          - idx: 2
+            model: virtio
+            bridge: vmbr0
+            tag: 103
+
+        # Delete options
+        destroy_unreferenced_disks: true
+        state: present
+
+    - name: Remove VM
+      proxmox_node_qemu:
+        node: "testprox"
+        vmid: "102"
+        state: absent
