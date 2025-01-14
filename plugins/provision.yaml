@@ -2,15 +2,20 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    - name: Setup proxmox pool
-      proxmox_pool:
-        poolid: "test"
-        comment: "Test pool"
-        state: present
+    # - name: Setup proxmox pool
+    #   proxmox_pool:
+    #     poolid: "test"
+    #     comment: "Test pool"
+    #     state: present
 
-    - name: Configure cluster options
-      proxmox_cluster_options:
-        description: "Proxmox Casiopeia Cluster"
+    # - name: Configure cluster options
+    #   proxmox_cluster_options:
+    #     description: "Proxmox Casiopeia Cluster"
+    - name: Delte VM 101
+      proxmox_node_qemu:
+        node: "testprox"
+        vmid: "101"
+        state: absent
 
     - name: Create VM
       proxmox_node_qemu:
@@ -38,9 +43,3 @@
         # Delete options
         destroy_unreferenced_disks: true
         state: present
-
-    - name: Remove VM
-      proxmox_node_qemu:
-        node: "testprox"
-        vmid: "102"
-        state: absent

@@ -54,7 +54,8 @@ updated_fields:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.pve import Pvesh, Result
+from ansible.module_utils.proxmox.client import Pvesh
+from ansible.module_utils.utils import Result
 from typing import List, Dict
 from dataclasses import dataclass, asdict
 from typing import Optional
