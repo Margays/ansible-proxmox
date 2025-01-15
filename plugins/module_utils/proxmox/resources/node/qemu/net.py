@@ -7,6 +7,7 @@ class QemuNet(BaseProxmoxResource):
     _resource = "net"
 
     def __init__(self, data: Dict[str, str]):
+        super().__init__()
         self.idx: int = int(data['idx'])
         self.model: Optional[str] = data.get('model', None)
         self.bridge: Optional[str] = data.get('bridge', None)

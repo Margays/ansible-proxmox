@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 from .net import QemuNet
+from .storage import IDEStorage, SATAStorage, SCSIStorage, VIRTIOStorage
 
 
 class Qemu:
@@ -40,7 +41,7 @@ class Qemu:
         self.hostpci: Optional[str] = data.get('hostpci', None)
         self.hookscript: Optional[str] = data.get('hookscript', None)
         self.hugepages: Optional[str] = data.get('hugepages', None)
-        self.ide: Optional[str] = data.get('ide', None)
+        self.ide: Optional[str] = self._load_from_list(data.get('ide', []), IDEStorage)
         self.import_working_storage: Optional[str] = data.get('import-working-storage', None)
         self.ipconfig: Optional[str] = data.get('ipconfig', None)
         self.ivshmem: Optional[str] = data.get('ivshmem', None)
@@ -56,7 +57,7 @@ class Qemu:
         self.migrate_speed: Optional[str] = data.get('migrate-speed', None)
         self.name: Optional[str] = data.get('name', None)
         self.nameserver: Optional[str] = data.get('nameserver', None)
-        self.net: List[QemuNet] = self._load_nets(data.get('net', []))
+        self.net: List[QemuNet] = self._load_from_list(data.get('net', []), QemuNet)
         self.numa: Optional[str] = data.get('numa', None)
         self.onboot: Optional[str] = data.get('onboot', None)
         self.ostype: Optional[str] = data.get('ostype', None)
@@ -65,8 +66,8 @@ class Qemu:
         self.protection: Optional[str] = data.get('protection', None)
         self.reboot: Optional[str] = data.get('reboot', None)
         self.rng0: Optional[str] = data.get('rng0', None)
-        self.sata: Optional[str] = data.get('sata', None)
-        self.scsi: Optional[str] = data.get('scsi', None)
+        self.sata: Optional[str] = self._load_from_list(data.get('sata', []), SATAStorage)
+        self.scsi: Optional[str] = self._load_from_list(data.get('scsi', []), SCSIStorage)
         self.scsihw: Optional[str] = data.get('scsihw', None)
         self.searchdomain: Optional[str] = data.get('searchdomain', None)
         self.serial: Optional[str] = data.get('serial', None)
@@ -89,7 +90,7 @@ class Qemu:
         self.usb: Optional[str] = data.get('usb', None)
         self.vcpus: Optional[str] = data.get('vcpus', None)
         self.vga: Optional[str] = data.get('vga', None)
-        self.virtio: Optional[str] = data.get('virtio', None)
+        self.virtio: Optional[str] = self._load_from_list(data.get('virtio', []), VIRTIOStorage)
         self.vmgenid: Optional[str] = data.get('vmgenid', None)
         self.vmstatestorage: Optional[str] = data.get('vmstatestorage', None)
         self.watchdog: Optional[str] = data.get('watchdog', None)
@@ -149,9 +150,9 @@ class Qemu:
 
         return diff
 
-    def _load_nets(self, data: List[Dict[str, str]]):
-        nets = []
-        for raw_net in data:
-            nets.append(QemuNet(raw_net))
+    def _load_from_list(self, data: List[Dict[str, str]], cls: type) -> List:
+        objs = []
+        for raw in data:
+            objs.append(cls(raw))
 
-        return nets
+        return objs

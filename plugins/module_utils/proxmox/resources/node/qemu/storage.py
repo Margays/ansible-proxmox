@@ -1,9 +1,10 @@
-from dataclasses import dataclass, asdict
 from typing import Optional, Dict
+from ...base_resource import BaseProxmoxResource
 
 
-class BaseStorage:
+class BaseStorage(BaseProxmoxResource):
     def __init__(self, data: Dict[str, str]):
+        super().__init__()
         self.idx = int(data['idx'])
         self.file: Optional[str] = data.get('file', None)
         self.aio: Optional[str] = data.get('aio', None)
@@ -40,53 +41,73 @@ class BaseStorage:
         self.trans: Optional[str] = data.get("trans", None)
         self.werror: Optional[str] = data.get('werror', None)
 
-
-class QemuIDEStorage(BaseStorage):
-    mbps: Optional[str] = None
-    mbps_max: Optional[str] = None
-    mbps_rd: Optional[str] = None
-    mbps_rd_max: Optional[str] = None
-    mbps_wr: Optional[str] = None
-    mbps_wr_max: Optional[str] = None
-    model: Optional[str] = None
-    ssd: Optional[str] = None
-    wwn: Optional[str] = None
+        self._mappings.update({
+            'import_from': 'import-from',
+        })
 
 
-class QemuSCSIStorage(BaseStorage):
-    iothreads: Optional[str] = None
-    mbps: Optional[str] = None
-    mbps_max: Optional[str] = None
-    mbps_rd: Optional[str] = None
-    mbps_rd_max: Optional[str] = None
-    mbps_wr: Optional[str] = None
-    mbps_wr_max: Optional[str] = None
-    product: Optional[str] = None
-    queues: Optional[str] = None
-    ro: Optional[str] = None
-    scsiblock: Optional[str] = None
-    ssd: Optional[str] = None
-    vendor: Optional[str] = None
-    wwn: Optional[str] = None
+class IDEStorage(BaseStorage):
+    _resource = "ide"
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.mbps: Optional[str] = data.get('mbps', None)
+        self.mbps_max: Optional[str] = data.get('mbps_max', None)
+        self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
+        self.mbps_rd_max: Optional[str] = data.get('mbps_rd_max', None)
+        self.mbps_wr: Optional[str] = data.get('mbps_wr', None)
+        self.mbps_wr_max: Optional[str] = data.get('mbps_wr_max', None)
+        self.model: Optional[str] = data.get('model', None)
+        self.ssd: Optional[str] = data.get('ssd', None)
+        self.wwn: Optional[str] = data.get('wwn', None)
 
 
-class QemuSATAStorage(BaseStorage):
-    mbps: Optional[str] = None
-    mbps_max: Optional[str] = None
-    mbps_rd: Optional[str] = None
-    mbps_rd_max: Optional[str] = None
-    mbps_wr: Optional[str] = None
-    mbps_wr_max: Optional[str] = None
-    ssd: Optional[str] = None
-    wwn: Optional[str] = None
+class SCSIStorage(BaseStorage):
+    _resource = "scsi"
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.iothreads: Optional[str] = data.get('iothreads', None)
+        self.mbps: Optional[str] = data.get('mbps', None)
+        self.mbps_max: Optional[str] = data.get('mbps_max', None)
+        self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
+        self.mbps_rd_max: Optional[str] = data.get('mbps_rd_max', None)
+        self.mbps_wr: Optional[str] = data.get('mbps_wr', None)
+        self.mbps_wr_max: Optional[str] = data.get('mbps_wr_max', None)
+        self.product: Optional[str] = data.get('product', None)
+        self.queues: Optional[str] = data.get('queues', None)
+        self.ro: Optional[str] = data.get('ro', None)
+        self.scsiblock: Optional[str] = data.get('scsiblock', None)
+        self.ssd: Optional[str] = data.get('ssd', None)
+        self.vendor: Optional[str] = data.get('vendor', None)
+        self.wwn: Optional[str] = data.get('wwn', None)
 
 
-class QemuVIRTIOStorage(BaseStorage):
-    iothreads: Optional[str] = None
-    mbps: Optional[str] = None
-    mbps_max: Optional[str] = None
-    mbps_rd: Optional[str] = None
-    mbps_rd_max: Optional[str] = None
-    mbps_wr: Optional[str] = None
-    mbps_wr_max: Optional[str] = None
-    ro: Optional[str] = None
+class SATAStorage(BaseStorage):
+    _resource = "sata"
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.mbps: Optional[str] = data.get('mbps', None)
+        self.mbps_max: Optional[str] = data.get('mbps_max', None)
+        self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
+        self.mbps_rd_max: Optional[str] = data.get('mbps_rd_max', None)
+        self.mbps_wr: Optional[str] = data.get('mbps_wr', None)
+        self.mbps_wr_max: Optional[str] = data.get('mbps_wr_max', None)
+        self.ssd: Optional[str] = data.get('ssd', None)
+        self.wwn: Optional[str] = data.get('wwn', None)
+
+
+class VIRTIOStorage(BaseStorage):
+    _resource = "virtio"
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.iothreads: Optional[str] = data.get('iothreads', None)
+        self.mbps: Optional[str] = data.get('mbps', None)
+        self.mbps_max: Optional[str] = data.get('mbps_max', None)
+        self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
+        self.mbps_rd_max: Optional[str] = data.get('mbps_rd_max', None)
+        self.mbps_wr: Optional[str] = data.get('mbps_wr', None)
+        self.mbps_wr_max: Optional[str] = data.get('mbps_wr_max', None)
+        self.ro: Optional[str] = data.get('ro', None)
