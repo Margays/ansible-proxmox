@@ -2,15 +2,16 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    # - name: Setup proxmox pool
-    #   proxmox_pool:
-    #     poolid: "test"
-    #     comment: "Test pool"
-    #     state: present
+    - name: Setup proxmox pool
+      proxmox_pool:
+        poolid: "test"
+        comment: "Test pool"
+        state: present
 
-    # - name: Configure cluster options
-    #   proxmox_cluster_options:
-    #     description: "Proxmox Casiopeia Cluster"
+    - name: Configure cluster options
+      proxmox_cluster_options:
+        description: "Proxmox Casiopeia Cluster"
+
     - name: Delte VM 101
       proxmox_node_qemu:
         node: "testprox"
@@ -39,6 +40,22 @@
             model: virtio
             bridge: vmbr0
             tag: 103
+        scsi:
+          - idx: 0
+            file: local-lvm:1
+            cache: writeback
+        ide:
+          - idx: 0
+            file: local-lvm:1
+            cache: writeback
+        sata:
+          - idx: 0
+            file: local-lvm:1
+            cache: writeback
+        virtio:
+          - idx: 0
+            file: local-lvm:1
+            cache: writeback
 
         # Delete options
         destroy_unreferenced_disks: true
