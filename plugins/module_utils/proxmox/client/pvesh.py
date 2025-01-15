@@ -32,7 +32,10 @@ class Pvesh:
         if stdout == b"":
             return {}
 
-        return json.loads(stdout.decode("utf-8"))
+        try:
+            return json.loads(stdout.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            return {"stdout": stdout.decode("utf-8"), "error": str(e)}
 
     def add_option(self, name: str, value: str = "") -> "Pvesh":
         self._options[name] = value
@@ -56,3 +59,6 @@ class Pvesh:
 
     def copy(self) -> "Pvesh":
         return deepcopy(self)
+
+    def __str__(self):
+        return f"Pvesh({self._path}) with options {self._options}"

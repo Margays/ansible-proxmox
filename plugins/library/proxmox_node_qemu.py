@@ -86,17 +86,17 @@ class ProxmoxQemu:
         if self.module.check_mode:
             return Result(status=True)
 
+        request = Pvesh(f"{self._path}/{self._qemu.vmid}")
+        if self._qemu.destroy_unreferenced_disks is not None:
+            request.add_option("destroy-unreferenced-disks", self._qemu.destroy_unreferenced_disks)
+
+        if self._qemu.purge is not None:
+            request.add_option("purge", self._qemu.purge)
+
+        if self._qemu.skiplock is not None:
+            request.add_option("skiplock", self._qemu.skiplock)
+
         try:
-            request = Pvesh(f"{self._path}/{self._qemu.vmid}")
-            if self._qemu.destroy_unreferenced_disks is not None:
-                request.add_option("destroy-unreferenced-disks", self._qemu.destroy_unreferenced_disks)
-
-            if self._qemu.purge is not None:
-                request.add_option("purge", self._qemu.purge)
-
-            if self._qemu.skiplock is not None:
-                request.add_option("skiplock", self._qemu.skiplock)
-
             request.delete()
             return Result(status=True)
         except Exception as e:
