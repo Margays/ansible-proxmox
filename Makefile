@@ -1,4 +1,6 @@
 MKFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+ANSIBLE_INVENTORY_DIR := $(MKFILE_DIR)/example/inventory
+ANSIBLE_USER := root
 
 .ONESHELL:
 

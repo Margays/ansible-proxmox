@@ -27,50 +27,50 @@ author:
 
 EXAMPLES = '''
 - name: Delte VM 101
-  proxmox_node_qemu:
+  node_qemu:
     node: "testprox"
     vmid: "101"
     state: absent
 
 - name: Create VM
-  proxmox_node_qemu:
-  node: "testprox"
-  vmid: "101"
-  name: "testvm"
-  cores: 4
-  memory: 4096
-  tags: "test"
-  pool: "test"
-  net:
-    - idx: 0
-      model: virtio
-      bridge: vmbr0
-      tag: 101
-    - idx: 1
-      model: virtio
-      bridge: vmbr0
-      tag: 102
-    - idx: 2
-      model: virtio
-      bridge: vmbr0
-      tag: 103
-  scsi:
-    - idx: 0
-      file: local-lvm:1
-      cache: writeback
-  ide:
-    - idx: 0
-      file: local-lvm:1
-      cache: writeback
-  sata:
-    - idx: 0
-      file: local-lvm:1
-      cache: writeback
-  virtio:
-    - idx: 0
-      file: local-lvm:1
-      cache: writeback
-  state: present
+  node_qemu:
+    node: "testprox"
+    vmid: "101"
+    name: "testvm"
+    cores: 4
+    memory: 4096
+    tags: "test"
+    pool: "test"
+    net:
+      - idx: 0
+        model: virtio
+        bridge: vmbr0
+        tag: 101
+      - idx: 1
+        model: virtio
+        bridge: vmbr0
+        tag: 102
+      - idx: 2
+        model: virtio
+        bridge: vmbr0
+        tag: 103
+    scsi:
+      - idx: 0
+        file: local-lvm:1
+        cache: writeback
+    ide:
+      - idx: 0
+        file: local-lvm:1
+        cache: writeback
+    sata:
+      - idx: 0
+        file: local-lvm:1
+        cache: writeback
+    virtio:
+      - idx: 0
+        file: local-lvm:1
+        cache: writeback
+    state: present
 '''
 
 RETURN = '''

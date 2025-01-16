@@ -3,23 +3,23 @@
   hosts: proxmox
   tasks:
     - name: Setup proxmox pool
-      pool:
+      margays.proxmox.pool:
         poolid: "test"
         comment: "Test pool"
         state: present
 
     - name: Configure cluster options
-      cluster_options:
+      margays.proxmox.cluster_options:
         description: "Proxmox Casiopeia Cluster"
 
     - name: Delte VM 101
-      node_qemu:
+      margays.proxmox.node_qemu:
         node: "testprox"
         vmid: "101"
         state: absent
 
     - name: Create VM
-      node_qemu:
+      margays.proxmox.node_qemu:
         node: "testprox"
         vmid: "101"
         name: "testvm"
