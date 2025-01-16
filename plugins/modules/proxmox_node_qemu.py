@@ -9,48 +9,72 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: proxmox_pool
+module: node_qemu
 
-short_description: Manages pools in Proxmox
+short_description: Manages VMs in Proxmox
 
 options:
-    poolid:
-        required: true
-        aliases: [ "poolid" ]
-        description:
-            - Name of the PVE pool.
     state:
         required: false
         default: "present"
         choices: [ "present", "absent" ]
         description:
-            - Specifies whether the pool should exist or not.
-    comment:
-        required: false
-        description:
-            - Pool's comment.
+            - Specifies whether the VM should exist or not.
 
 author:
     - Lukasz Wencel (@lwencel-priv)
 '''
 
 EXAMPLES = '''
-- name: Create Kubernetes pool
-  proxmox_pool:
-    name: kubernetes
-- name: Create admins pool
-  proxmox_pool:
-    name: pool_devops
-    comment: DevOps users allowed to access on this pool.
+- name: Delte VM 101
+      proxmox_node_qemu:
+        node: "testprox"
+        vmid: "101"
+        state: absent
+
+- name: Create VM
+    proxmox_node_qemu:
+    node: "testprox"
+    vmid: "101"
+    name: "testvm"
+    cores: 4
+    memory: 4096
+    tags: "test"
+    pool: "test"
+    net:
+        - idx: 0
+          model: virtio
+          bridge: vmbr0
+          tag: 101
+        - idx: 1
+          model: virtio
+          bridge: vmbr0
+          tag: 102
+        - idx: 2
+          model: virtio
+          bridge: vmbr0
+          tag: 103
+    scsi:
+        - idx: 0
+          file: local-lvm:1
+          cache: writeback
+    ide:
+        - idx: 0
+          file: local-lvm:1
+          cache: writeback
+    sata:
+        - idx: 0
+          file: local-lvm:1
+          cache: writeback
+    virtio:
+        - idx: 0
+          file: local-lvm:1
+          cache: writeback
+
+    state: present
 '''
 
 RETURN = '''
-data:
-    description: Information about the pool.
-    type: json
-updated_fields:
-    description: Fields that were modified in existing pool
-    type: list
 '''
 
 from ansible.module_utils.basic import AnsibleModule

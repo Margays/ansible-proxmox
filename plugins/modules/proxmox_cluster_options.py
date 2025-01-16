@@ -9,7 +9,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: proxmox_cluster_options
+module: cluster_options
 
 
 author:

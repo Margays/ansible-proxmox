@@ -3,23 +3,23 @@
   hosts: proxmox
   tasks:
     - name: Setup proxmox pool
-      proxmox_pool:
+      pool:
         poolid: "test"
         comment: "Test pool"
         state: present
 
     - name: Configure cluster options
-      proxmox_cluster_options:
+      cluster_options:
         description: "Proxmox Casiopeia Cluster"
 
     - name: Delte VM 101
-      proxmox_node_qemu:
+      node_qemu:
         node: "testprox"
         vmid: "101"
         state: absent
 
     - name: Create VM
-      proxmox_node_qemu:
+      node_qemu:
         node: "testprox"
         vmid: "101"
         name: "testvm"

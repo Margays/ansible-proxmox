@@ -9,14 +9,13 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: proxmox_pool
+module: pool
 
 short_description: Manages pools in Proxmox
 
 options:
     poolid:
         required: true
-        aliases: [ "poolid" ]
         description:
             - Name of the PVE pool.
     state:
