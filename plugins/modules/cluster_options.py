@@ -23,8 +23,8 @@ RETURN = '''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.proxmox.client import Pvesh
-from ansible.module_utils.utils import Result
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
+from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
 from typing import Dict, Optional, Any
 from dataclasses import dataclass, asdict
 

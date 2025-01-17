@@ -77,9 +77,9 @@ RETURN = '''
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.proxmox.client.pvesh import Pvesh
-from ansible.module_utils.utils import Result
-from ansible.module_utils.proxmox.resources.node.qemu import Qemu
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
+from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.resources.node.qemu import Qemu
 from typing import Dict
 from typing import Optional
 

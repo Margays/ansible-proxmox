@@ -1,5 +1,5 @@
 ---
 collections:
   # directory containing a namespace, with collections as subdirectories
-  - source: ./../
-    type: subdirs
+  - source: ../
+    type: dir
