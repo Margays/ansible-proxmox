@@ -56,19 +56,23 @@ EXAMPLES = '''
         tag: 103
     scsi:
       - idx: 0
-        file: local-lvm:1
+        storage: local-lvm
+        size: 1
         cache: writeback
     ide:
       - idx: 0
-        file: local-lvm:1
+        storage: local-lvm
+        size: 1
         cache: writeback
     sata:
       - idx: 0
-        file: local-lvm:1
+        storage: local-lvm
+        size: 1
         cache: writeback
     virtio:
       - idx: 0
-        file: local-lvm:1
+        storage: local-lvm
+        size: 1
         cache: writeback
     state: present
 '''
