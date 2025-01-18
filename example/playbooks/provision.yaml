@@ -10,7 +10,8 @@
 
     - name: Configure cluster options
       margays.proxmox.cluster_options:
-        description: "Proxmox Casiopeia Cluster"
+        description: "Proxmox Casiopeia Cluster!"
+        max_workers: "3"
 
     - name: Delte VM 101
       margays.proxmox.node_qemu:

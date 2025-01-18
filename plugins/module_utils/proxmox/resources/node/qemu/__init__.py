@@ -1,11 +1,13 @@
 from typing import Dict, List, Optional
 from .net import QemuNet
 from .storage import IDEStorage, SATAStorage, SCSIStorage, VIRTIOStorage
+from ...resource import Resource
 
 
-class Qemu:
+class Qemu(Resource):
 
     def __init__(self, node: str, data: Dict[str, str]):
+        super().__init__()
         vmid = data.get('vmid', None)
         self.node: Optional[str] = node
         self.vmid: Optional[str] = str(vmid) if vmid else None
@@ -100,55 +102,11 @@ class Qemu:
         self.purge: Optional[str] = data.get('purge', None)
         self.skiplock: Optional[str] = data.get('skiplock', None)
 
-        self._mappings = {
+        self._mappings.update({
             "live_restore": "live-restore",
             "import_working_storage": "import-working-storage",
-        }
-        self._serialize_skip = ['destroy_unreferenced_disks', 'purge', 'skiplock', '_mappings', '_serialize_skip']
-
-    def serialize(self) -> Dict[str, str]:
-        data = {}
-        
-        def _normalize(key, value):
-
-            if hasattr(value, 'serialize'):
-                return value.serialize()
-            else:
-                mapped_key = self._mappings.get(key, key)
-                return {mapped_key: value}
-
-        for key, value in self.__dict__.items():
-            if key in self._serialize_skip:
-                continue
-
-            if isinstance(value, list):
-                for item in value:
-                    data.update(_normalize(key, item))
-            else:
-                data.update(_normalize(key, value))
-        
-        return data
-
-    def to_dict(self) -> Dict[str, str]:
-        data = {}
-        for key, value in self.__dict__.items():
-            if hasattr(value, 'to_dict'):
-                data.update(value.to_dict())
-            else:
-                data[key] = value
-
-        return data
-
-    def diff(self, other: Optional['Qemu']) -> Dict[str, str]:
-        diff: Dict[str, str] = {}
-        for key, value in self.serialize().items():
-            if value is None:
-                continue
-
-            if value != getattr(other, key, None):
-                diff[key] = value
-
-        return diff
+        })
+        self._serialize_skip.extend(['destroy_unreferenced_disks', 'purge', 'skiplock'])
 
     def _load_from_list(self, data: List[Dict[str, str]], cls: type) -> List:
         objs = []

@@ -1,11 +1,11 @@
 from typing import Optional, Dict
-from ...base_resource import BaseProxmoxResource
+from ...resource import ResourceField
 
 
-class BaseStorage(BaseProxmoxResource):
-    def __init__(self, data: Dict[str, str]):
-        super().__init__()
-        self.idx = int(data['idx'])
+class BaseStorage(ResourceField):
+
+    def __init__(self, name: str, data: Dict[str, str]):
+        super().__init__(name, int(data['idx']))
         self.file: Optional[str] = data.get('file', None)
         self.aio: Optional[str] = data.get('aio', None)
         self.backup: Optional[str] = data.get('backup', None)
@@ -47,10 +47,9 @@ class BaseStorage(BaseProxmoxResource):
 
 
 class IDEStorage(BaseStorage):
-    _resource = "ide"
 
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, data: Dict[str, str]):
+        super().__init__("ide", data)
         self.mbps: Optional[str] = data.get('mbps', None)
         self.mbps_max: Optional[str] = data.get('mbps_max', None)
         self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
@@ -63,10 +62,10 @@ class IDEStorage(BaseStorage):
 
 
 class SCSIStorage(BaseStorage):
-    _resource = "scsi"
+    _name = "scsi"
 
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, data: Dict[str, str]):
+        super().__init__("scsi", data)
         self.iothreads: Optional[str] = data.get('iothreads', None)
         self.mbps: Optional[str] = data.get('mbps', None)
         self.mbps_max: Optional[str] = data.get('mbps_max', None)
@@ -84,10 +83,9 @@ class SCSIStorage(BaseStorage):
 
 
 class SATAStorage(BaseStorage):
-    _resource = "sata"
 
     def __init__(self, data):
-        super().__init__(data)
+        super().__init__("sata", data)
         self.mbps: Optional[str] = data.get('mbps', None)
         self.mbps_max: Optional[str] = data.get('mbps_max', None)
         self.mbps_rd: Optional[str] = data.get('mbps_rd', None)
@@ -99,10 +97,9 @@ class SATAStorage(BaseStorage):
 
 
 class VIRTIOStorage(BaseStorage):
-    _resource = "virtio"
 
     def __init__(self, data):
-        super().__init__(data)
+        super().__init__("virtio", data)
         self.iothreads: Optional[str] = data.get('iothreads', None)
         self.mbps: Optional[str] = data.get('mbps', None)
         self.mbps_max: Optional[str] = data.get('mbps_max', None)

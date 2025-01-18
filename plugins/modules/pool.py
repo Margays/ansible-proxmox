@@ -63,7 +63,7 @@ from typing import Optional
 class ProxmoxPool:
     def __init__(self, module: AnsibleModule):
         self.module = module
-        self._pool = Pool.from_dict(module.params)
+        self._pool = Pool(module.params)
         self.state: str = module.params['state']
         self._path = "pools"
 
@@ -72,14 +72,14 @@ class ProxmoxPool:
             request = Pvesh(f"{self._path}")
             pools_list: List[Dict[str, str]] = request.get()
             for raw_pool in pools_list:
-                pool = Pool.from_dict(raw_pool)
+                pool = Pool(raw_pool)
                 if pool.poolid == self._pool.poolid:
                     return pool
 
             return None
 
         except Exception as e:
-            self.module.fail_json(msg=e.message, status_code=e.status_code)
+            self.module.fail_json(msg=str(e))
 
     def remove(self) -> Result:
         if self.module.check_mode:

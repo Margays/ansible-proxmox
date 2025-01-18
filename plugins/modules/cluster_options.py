@@ -37,14 +37,14 @@ class ClusterOptionsManager:
         try:
             request = Pvesh(f"{self._path}")
             data = request.get()
-            return ClusterOptions.from_dict(data)
+            return ClusterOptions(data)
 
         except Exception as e:
-            self.module.fail_json(msg=e.message, status_code=e.status_code)
+            self.module.fail_json(msg=str(e))
 
     def modify(self) -> Result:
         lookup = self.lookup()
-        expected = ClusterOptions.from_dict(self.module.params)
+        expected = ClusterOptions(self.module.params)
 
         updated_fields = expected.diff(lookup)
 
