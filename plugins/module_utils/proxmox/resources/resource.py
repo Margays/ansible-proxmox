@@ -9,12 +9,23 @@ class __Base:
     def to_dict(self) -> Dict[str, str]:
         data = {}
         for key, value in self.__dict__.items():
-            if hasattr(value, 'to_dict'):
-                data.update(value.to_dict())
+            if isinstance(value, list):
+                for item in value:
+                    data.update(self._normalize(key, item))
             else:
-                data[key] = value
+                data.update(self._normalize(key, value))
 
         return data
+
+    def _normalize(self, key: str, value: Optional[str]) -> Dict[str, str]:
+        if value is None:
+            return {}
+
+        if hasattr(value, 'to_dict'):
+            return value.to_dict()
+        else:
+            mapped_key = self._mappings.get(key, key)
+            return {mapped_key: str(value)}
 
 
 class Resource(__Base):

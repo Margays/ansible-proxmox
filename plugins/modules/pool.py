@@ -37,6 +37,7 @@ EXAMPLES = '''
 - name: Create Kubernetes pool
   proxmox_pool:
     name: kubernetes
+
 - name: Create admins pool
   proxmox_pool:
     name: pool_devops
@@ -52,6 +53,7 @@ updated_fields:
     type: list
 '''
 
+import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client import Pvesh
 from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
@@ -61,6 +63,8 @@ from typing import Optional
 
 
 class ProxmoxPool:
+    _pool_not_found_regex = re.compile(r".*pool '.*' does not exist.*")
+
     def __init__(self, module: AnsibleModule):
         self.module = module
         self._pool = Pool(module.params)
@@ -69,16 +73,17 @@ class ProxmoxPool:
 
     def lookup(self) -> Optional[Pool]:
         try:
-            request = Pvesh(f"{self._path}")
-            pools_list: List[Dict[str, str]] = request.get()
-            for raw_pool in pools_list:
+            request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
+            pool: List[Dict[str, str]] = request.get()
+            for raw_pool in pool:
                 pool = Pool(raw_pool)
                 if pool.poolid == self._pool.poolid:
                     return pool
 
-            return None
-
         except Exception as e:
+            if self._pool_not_found_regex.match(str(e)):
+                return None
+
             self.module.fail_json(msg=str(e))
 
     def remove(self) -> Result:

@@ -17,6 +17,10 @@ author:
 '''
 
 EXAMPLES = '''
+- name: Configure cluster options
+  margays.proxmox.cluster_options:
+    description: "Proxmox Casiopeia Cluster!"
+    max_workers: "3"
 '''
 
 RETURN = '''

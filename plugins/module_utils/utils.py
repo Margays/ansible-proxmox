@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 
 class Result:
@@ -6,3 +6,11 @@ class Result:
         self.status = status
         self.changes = changes or {}
         self.error = error
+
+
+def load_objs_from_list(data: List[Dict[str, str]], cls: type) -> list:
+    objs = []
+    for raw in data:
+        objs.append(cls(raw))
+
+    return objs

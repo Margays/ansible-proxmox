@@ -6,7 +6,10 @@ class BaseStorage(ResourceField):
 
     def __init__(self, name: str, data: Dict[str, str]):
         super().__init__(name, int(data['idx']))
-        self.file: Optional[str] = data.get('file', None)
+        size: str = data['size']
+        storage: str = data['storage']
+
+        self.file: Optional[str] = f"{storage}:{size}"
         self.aio: Optional[str] = data.get('aio', None)
         self.backup: Optional[str] = data.get('backup', None)
         self.bps: Optional[str] = data.get('bps', None)
@@ -36,7 +39,7 @@ class BaseStorage(ResourceField):
         self.secs: Optional[str] = data.get('secs', None)
         self.serial: Optional[str] = data.get('serial', None)
         self.shared: Optional[str] = data.get('shared', None)
-        self.size: Optional[str] = data.get('size', None)
+        self.size: Optional[str] = size
         self.snapshot: Optional[str] = data.get('snapshot', None)
         self.trans: Optional[str] = data.get("trans", None)
         self.werror: Optional[str] = data.get('werror', None)

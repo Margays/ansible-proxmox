@@ -76,6 +76,7 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
+import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
 from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
@@ -85,6 +86,8 @@ from typing import Optional
 
 
 class ProxmoxQemu:
+    _vm_not_exists_regex = re.compile(r".*Configuration file '.*' does not exist.*")
+
     def __init__(self, module: AnsibleModule):
         self.module = module
         self._qemu = Qemu(module.params["node"], module.params)
@@ -93,16 +96,15 @@ class ProxmoxQemu:
 
     def lookup(self) -> Optional[Qemu]:
         try:
-            request = Pvesh(f"{self._path}")
-            raw_list: Dict[str, str] = request.get()
-            for raw in raw_list:
-                qemu = Qemu(self._qemu.node, raw)
-                if qemu.vmid == self._qemu.vmid:
-                    return qemu
-
-            return None
+            request = Pvesh(f"{self._path}/{self._qemu.vmid}/config")
+            data: Dict[str, str] = request.get()
+            qemu = Qemu(self._qemu.node, data)
+            return qemu
 
         except Exception as e:
+            if self._vm_not_exists_regex.match(str(e)):
+                return None
+
             self.module.fail_json(msg=str(e))
 
     def remove(self) -> Result:
@@ -144,7 +146,7 @@ class ProxmoxQemu:
             return Result(status=False, error=e)
 
     def modify(self) -> Result:
-        return Result(status=False)
+        return Result(status=False, changes=[])
 
 
 def main():

@@ -2,18 +2,7 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    - name: Setup proxmox pool
-      margays.proxmox.pool:
-        poolid: "test"
-        comment: "Test pool"
-        state: present
-
-    - name: Configure cluster options
-      margays.proxmox.cluster_options:
-        description: "Proxmox Casiopeia Cluster!"
-        max_workers: "3"
-
-    - name: Delte VM 101
+    - name: Delete VM 101
       margays.proxmox.node_qemu:
         node: "testprox"
         vmid: "101"
@@ -24,7 +13,7 @@
         node: "testprox"
         vmid: "101"
         name: "testvm"
-        cores: 4
+        cores: 2
         memory: 4096
         tags: "test"
         pool: "test"
@@ -43,19 +32,23 @@
             tag: 103
         scsi:
           - idx: 0
-            file: local-lvm:1
+            storage: local-lvm
+            size: 1
             cache: writeback
         ide:
           - idx: 0
-            file: local-lvm:1
+            storage: local-lvm
+            size: 1
             cache: writeback
         sata:
           - idx: 0
-            file: local-lvm:1
+            storage: local-lvm
+            size: 1
             cache: writeback
         virtio:
           - idx: 0
-            file: local-lvm:1
+            storage: local-lvm
+            size: 1
             cache: writeback
 
         # Delete options
