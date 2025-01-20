@@ -29,6 +29,10 @@ class __Base:
 
 
 class Resource(__Base):
+    def __init__(self):
+        super().__init__()
+        self._diff_skip: List[str] = []
+        self._serialize_skip.extend(['_diff_skip'])
 
     def __normalize(self, key: str, value: Optional[str]) -> Dict[str, str]:
         if value is None:
@@ -58,7 +62,7 @@ class Resource(__Base):
         diff: Dict[str, str] = {}
         serialized_other = other.serialize() if other else {}
         for key, value in self.serialize().items():
-            if value is None:
+            if value is None or key in self._diff_skip:
                 continue
 
             other_value = serialized_other.get(key, None)

@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional
+import re
+from typing import Dict, List, Optional, Any
 from .net import QemuNet
 from .storage import IDEStorage, SATAStorage, SCSIStorage, VIRTIOStorage
 from ...resource import Resource
@@ -6,9 +7,12 @@ from .....utils import load_objs_from_list
 
 
 class Qemu(Resource):
+    storage_regex = re.compile(r'^(ide|sata|scsi|virtio)(\d+)$')
+    net_regex = re.compile(r'^net(\d+)$')
 
-    def __init__(self, node: str, data: Dict[str, str]):
+    def __init__(self, node: str, raw: Dict[str, str]):
         super().__init__()
+        data = self._normalize_proxmox_format(raw)
         vmid = data.get('vmid', None)
         self.node: Optional[str] = node
         self.vmid: Optional[str] = str(vmid) if vmid else None
@@ -108,3 +112,72 @@ class Qemu(Resource):
             "import_working_storage": "import-working-storage",
         })
         self._serialize_skip.extend(['destroy_unreferenced_disks', 'purge', 'skiplock'])
+        self._diff_skip.extend(["vmid", "pool"])
+
+    def _normalize_proxmox_format(self, raw: Dict[str, str]) -> Dict[str, Any]:
+        data: Dict[str, Any] = {}
+        noramlizers = [
+            self._noramlize_storage_param,
+            self._noramlize_network_param,
+            self._noramlize_simple_param,
+        ]
+        for field, value in raw.items():
+            for normalizer in noramlizers:
+                if normalizer(field, value, data):
+                    break
+
+        return data
+
+    def _noramlize_storage_param(self, field: str, value: Any, data: dict) -> bool:
+        if match := self.storage_regex.match(field):
+            storage_type, storage_id = match.groups()
+            partial_data =  {
+                "idx": storage_id,
+            }
+
+            for param in value.split(","):
+                if "=" in param:
+                    key, value = param.split("=")
+                    partial_data[key] = value
+                elif ":" in param:
+                    storage_name, img_path = param.split(":")
+                    partial_data["storage"] = storage_name
+                    partial_data["file"] = f"{storage_name}:{img_path}"
+                else:
+                    raise ValueError(f"Invalid storage parameter format: {param}")
+
+            state: list = data.get(storage_type, [])
+            state.append(partial_data)
+            data.update({storage_type: state})
+            return True
+
+        return False
+        
+    def _noramlize_network_param(self, field: str, value: Any, data: dict) -> bool:
+        if match := self.net_regex.match(field):
+            net_id = match.groups()[0]
+            partial_data = {
+                "idx": net_id,
+            }
+
+            for param in value.split(","):
+                if "=" in param:
+                    key, value = param.split("=")
+                    if value.count(":") == 5:
+                        partial_data["model"] = key
+                    else:
+                        partial_data[key] = value
+
+                else:
+                    raise ValueError(f"Invalid net parameter format: {param}")
+
+            state: list = data.get("net", [])
+            state.append(partial_data)
+            data.update({"net": state})
+            return True
+
+        return False
+    
+    def _noramlize_simple_param(self, field: str, value: Any, data: dict) -> bool:
+        data[field] = value
+        return True

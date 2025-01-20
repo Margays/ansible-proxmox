@@ -14,6 +14,7 @@ module: cluster_ha_group
 options:
     group:
         description: Name of the HA group
+        type: str
         required: true
     nodes:
         description: List of nodes in the HA group
@@ -29,6 +30,7 @@ options:
                 required: false
     comment:
         description: Comment
+        type: str
         required: false
     nofailback:
         description: No failback
@@ -38,6 +40,7 @@ options:
         required: false
     type:
         description: Type
+        type: str
         required: false
 
 

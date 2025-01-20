@@ -2,11 +2,12 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    - name: Delete VM 101
-      margays.proxmox.node_qemu:
-        node: "testprox"
-        vmid: "101"
-        state: absent
+    # - name: Delete VM
+    #   margays.proxmox.node_qemu:
+    #     node: "testprox"
+    #     vmid: "101"
+    #     destroy_unreferenced_disks: true
+    #     state: absent
 
     - name: Create VM
       margays.proxmox.node_qemu:
@@ -21,7 +22,7 @@
           - idx: 0
             model: virtio
             bridge: vmbr0
-            tag: 101
+            tag: 102
           - idx: 1
             model: virtio
             bridge: vmbr0
@@ -54,3 +55,8 @@
         # Delete options
         destroy_unreferenced_disks: true
         state: present
+      register: result
+
+    - name: Print result
+      debug:
+        var: result

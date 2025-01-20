@@ -6,10 +6,12 @@ class BaseStorage(ResourceField):
 
     def __init__(self, name: str, data: Dict[str, str]):
         super().__init__(name, int(data['idx']))
-        size: str = data['size']
+        size: str = str(data['size'])[:-1] if str(data['size']).endswith('G') else data['size']
         storage: str = data['storage']
+        import_from = data.get('import_from', data.get('import-from', None))
+        file = data.get('file', f"{storage}:{size}" if import_from is None else f"{storage}:0")
 
-        self.file: Optional[str] = f"{storage}:{size}"
+        self.file: Optional[str] = file
         self.aio: Optional[str] = data.get('aio', None)
         self.backup: Optional[str] = data.get('backup', None)
         self.bps: Optional[str] = data.get('bps', None)
@@ -24,7 +26,7 @@ class BaseStorage(ResourceField):
         self.discard: Optional[str] = data.get('discard', None)
         self.format: Optional[str] = data.get('format', None)
         self.heads: Optional[str] = data.get('heads', None)
-        self.import_from: Optional[str] = data.get('import_from', data.get('import-from', None))
+        self.import_from: Optional[str] = import_from
         self.iops: Optional[str] = data.get('iops', None)
         self.iops_max_length: Optional[str] = data.get('iops_max_length', None)
         self.iops_rd: Optional[str] = data.get('iops_rd', None)
@@ -65,7 +67,6 @@ class IDEStorage(BaseStorage):
 
 
 class SCSIStorage(BaseStorage):
-    _name = "scsi"
 
     def __init__(self, data: Dict[str, str]):
         super().__init__("scsi", data)

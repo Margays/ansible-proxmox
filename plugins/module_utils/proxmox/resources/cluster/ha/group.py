@@ -21,22 +21,28 @@ class Nodes:
 
     def __init__(self, data: List[Dict[str, Any]]):
         self.nodes: List[Node] = []
-        if isinstance(data, list):
-            self.nodes.extend(load_objs_from_list(data, Node))
-        elif isinstance(data, str):
-            parts = data.split(':')
-            if len(parts) == 1:
-                self.nodes.append(Node({'name': parts[0]}))
-            elif len(parts) == 2:
-                self.nodes.append(Node({'name': parts[0], 'priority': parts[1]}))
-            else:
-                raise ValueError(f"Invalid format for nodes: {data}")
-            
+        match type(data).__name__:
+            case "list":
+                self._load_from_list(data)
+            case "str":
+                self._load_from_str(data)
+            case _:
+                raise ValueError(f"Invalid type for nodes: {type(data)}")
+
+    def _load_from_list(self, data: List[Dict[str, Any]]):
+        self.nodes.extend(load_objs_from_list(data, Node))
+
+    def _load_from_str(self, data: str):
+        parts = data.split(':')
+        if len(parts) == 1:
+            self.nodes.append(Node({'name': parts[0]}))
+        elif len(parts) == 2:
+            self.nodes.append(Node({'name': parts[0], 'priority': parts[1]}))
         else:
-            raise ValueError(f"Invalid type for nodes: {type(data)}")
+            raise ValueError(f"Invalid format for nodes: {data}")
 
     def __str__(self):
-        return ', '.join([str(node) for node in self.nodes])
+        return ','.join([str(node) for node in self.nodes])
 
 
 class ClusterHAGroup(Resource):

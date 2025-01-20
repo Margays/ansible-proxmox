@@ -94,15 +94,15 @@ class ProxmoxQemu:
 
     def __init__(self, module: AnsibleModule):
         self.module = module
-        self._qemu = Qemu(module.params["node"], module.params)
+        self._resource = Qemu(module.params["node"], module.params)
         self.state: str = module.params['state']
-        self._path = f"nodes/{self._qemu.node}/qemu"
-
+        self._path = f"nodes/{self._resource.node}/qemu"
+  
     def lookup(self) -> Optional[Qemu]:
         try:
-            request = Pvesh(f"{self._path}/{self._qemu.vmid}/config")
+            request = Pvesh(f"{self._path}/{self._resource.vmid}/config")
             data: Dict[str, str] = request.get()
-            qemu = Qemu(self._qemu.node, data)
+            qemu = Qemu(self._resource.node, data)
             return qemu
 
         except Exception as e:
@@ -115,15 +115,15 @@ class ProxmoxQemu:
         if self.module.check_mode:
             return Result(status=True)
 
-        request = Pvesh(f"{self._path}/{self._qemu.vmid}")
-        if self._qemu.destroy_unreferenced_disks is not None:
-            request.add_option("destroy-unreferenced-disks", self._qemu.destroy_unreferenced_disks)
+        request = Pvesh(f"{self._path}/{self._resource.vmid}")
+        if self._resource.destroy_unreferenced_disks is not None:
+            request.add_option("destroy-unreferenced-disks", self._resource.destroy_unreferenced_disks)
 
-        if self._qemu.purge is not None:
-            request.add_option("purge", self._qemu.purge)
+        if self._resource.purge is not None:
+            request.add_option("purge", self._resource.purge)
 
-        if self._qemu.skiplock is not None:
-            request.add_option("skiplock", self._qemu.skiplock)
+        if self._resource.skiplock is not None:
+            request.add_option("skiplock", self._resource.skiplock)
 
         try:
             request.delete()
@@ -136,7 +136,7 @@ class ProxmoxQemu:
             return Result(status=True)
 
         request = Pvesh(f"{self._path}")
-        for field, value in self._qemu.serialize().items():
+        for field, value in self._resource.serialize().items():
             if field in ['node']:
                 continue
 
@@ -150,7 +150,59 @@ class ProxmoxQemu:
             return Result(status=False, error=e)
 
     def modify(self) -> Result:
-        return Result(status=False, changes=[])
+        lookup = self.lookup()
+        updated_fields = self._resource.diff(lookup)
+
+        serialized_lookup = lookup.serialize()
+        request = Pvesh(f"{self._path}/{self._resource.vmid}/config")
+        options = {}
+        for key, value in updated_fields.items():
+            if self._resource.storage_regex.match(key):
+                self._add_storage_options(options, key, value, serialized_lookup)
+            else:
+                options[key] = value
+
+        # raise Exception(str(serialized_lookup) + "/" + str(self._resource.serialize()))
+        if self.module.check_mode or not options:
+            return Result(status=bool(options), changes=options)
+
+        for key, value in options.items():
+            request.add_option(key, value)
+
+        try:
+            request.set()
+            return Result(status=True, changes=updated_fields)
+        except Exception as e:
+            return Result(status=False, error=e)
+
+    def _add_storage_options(self, options: dict, field: str, value: str, serialized_lookup: dict):
+        def filter_comparable_parts(parts):
+            parts = list(filter(lambda x: "import-from=" not in x and "file=" not in x, parts))
+            parts.sort()
+            return parts
+
+        lookup_value = serialized_lookup.get(field, "")
+        if filter_comparable_parts(value.split(",")) == filter_comparable_parts(lookup_value.split(",")):
+            return {}
+
+        if "import-from" in value or not lookup_value:
+            options[field] = value
+        else:
+            lookup_parts = lookup_value.split(",")
+            lookup_import = next(filter(lambda x: "import-from=" in x, lookup_parts), None)
+            lookup_file = next(filter(lambda x: "file=" in x, lookup_parts), None)
+
+            final_parts = []
+            for part in value.split(","):
+                if "file=" in part:
+                    final_parts.append(lookup_file)
+                else:
+                    final_parts.append(part)
+
+            if lookup_import:
+                final_parts.append(f"{lookup_import}")
+
+            options[field] = ",".join(final_parts)
 
 
 def main():
