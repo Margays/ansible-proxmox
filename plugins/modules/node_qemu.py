@@ -18,8 +18,7 @@ options:
         required: false
         default: "present"
         choices: [ "present", "absent" ]
-        description:
-            - Specifies whether the VM should exist or not.
+        description: Specifies whether the resource should exist or not.
 
 author:
     - Lukasz Wencel (@lwencel-priv)
@@ -27,13 +26,13 @@ author:
 
 EXAMPLES = '''
 - name: Delte VM 101
-  node_qemu:
+  margays.proxmox.node_qemu:
     node: "testprox"
     vmid: "101"
     state: absent
 
 - name: Create VM
-  node_qemu:
+  margays.proxmox.node_qemu:
     node: "testprox"
     vmid: "101"
     name: "testvm"
@@ -80,129 +79,10 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
-from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
-from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.resources.node.qemu import Qemu
-from typing import Dict
-from typing import Optional
-
-
-class ProxmoxQemu:
-    _vm_not_exists_regex = re.compile(r".*Configuration file '.*' does not exist.*")
-
-    def __init__(self, module: AnsibleModule):
-        self.module = module
-        self._resource = Qemu(module.params["node"], module.params)
-        self.state: str = module.params['state']
-        self._path = f"nodes/{self._resource.node}/qemu"
-  
-    def lookup(self) -> Optional[Qemu]:
-        try:
-            request = Pvesh(f"{self._path}/{self._resource.vmid}/config")
-            data: Dict[str, str] = request.get()
-            qemu = Qemu(self._resource.node, data)
-            return qemu
-
-        except Exception as e:
-            if self._vm_not_exists_regex.match(str(e)):
-                return None
-
-            self.module.fail_json(msg=str(e))
-
-    def remove(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        request = Pvesh(f"{self._path}/{self._resource.vmid}")
-        if self._resource.destroy_unreferenced_disks is not None:
-            request.add_option("destroy-unreferenced-disks", self._resource.destroy_unreferenced_disks)
-
-        if self._resource.purge is not None:
-            request.add_option("purge", self._resource.purge)
-
-        if self._resource.skiplock is not None:
-            request.add_option("skiplock", self._resource.skiplock)
-
-        try:
-            request.delete()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def create(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        request = Pvesh(f"{self._path}")
-        for field, value in self._resource.serialize().items():
-            if field in ['node']:
-                continue
-
-            if value:
-                request.add_option(field, value)
-
-        try:
-            request.create()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def modify(self) -> Result:
-        lookup = self.lookup()
-        updated_fields = self._resource.diff(lookup)
-
-        serialized_lookup = lookup.serialize()
-        request = Pvesh(f"{self._path}/{self._resource.vmid}/config")
-        options = {}
-        for key, value in updated_fields.items():
-            if self._resource.storage_regex.match(key):
-                self._add_storage_options(options, key, value, serialized_lookup)
-            else:
-                options[key] = value
-
-        # raise Exception(str(serialized_lookup) + "/" + str(self._resource.serialize()))
-        if self.module.check_mode or not options:
-            return Result(status=bool(options), changes=options)
-
-        for key, value in options.items():
-            request.add_option(key, value)
-
-        try:
-            request.set()
-            return Result(status=True, changes=updated_fields)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def _add_storage_options(self, options: dict, field: str, value: str, serialized_lookup: dict):
-        def filter_comparable_parts(parts):
-            parts = list(filter(lambda x: "import-from=" not in x and "file=" not in x, parts))
-            parts.sort()
-            return parts
-
-        lookup_value = serialized_lookup.get(field, "")
-        if filter_comparable_parts(value.split(",")) == filter_comparable_parts(lookup_value.split(",")):
-            return {}
-
-        if "import-from" in value or not lookup_value:
-            options[field] = value
-        else:
-            lookup_parts = lookup_value.split(",")
-            lookup_import = next(filter(lambda x: "import-from=" in x, lookup_parts), None)
-            lookup_file = next(filter(lambda x: "file=" in x, lookup_parts), None)
-
-            final_parts = []
-            for part in value.split(","):
-                if "file=" in part:
-                    final_parts.append(lookup_file)
-                else:
-                    final_parts.append(part)
-
-            if lookup_import:
-                final_parts.append(f"{lookup_import}")
-
-            options[field] = ",".join(final_parts)
+from ansible_collections.margays.proxmox.plugins.module_utils.utils import AnsibleResult
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.handlers.node_qemu_handler import NodeQemuHandler
 
 
 def main():
@@ -306,31 +186,31 @@ def main():
         supports_check_mode=True
     )
 
-    qemu = ProxmoxQemu(module)
+    handler = NodeQemuHandler(Pvesh, module.params)
+    try:
+        lookup = handler.lookup()
+        result = AnsibleResult()
+        state = module.params['state']
+        if state == 'absent':
+            if lookup:
+                result = handler.remove(module.check_mode)
 
-    lookup = qemu.lookup()
-    result = Result()
-    if qemu.state == 'absent':
-        if lookup:
-            result = qemu.remove()
+        elif state == 'present':
+            if not lookup:
+                result = handler.create(module.check_mode)
+            else:
+                result = handler.modify(module.check_mode)
+    except Exception as e:
+        module.fail_json(msg=str(e))
 
-    elif qemu.state == 'present':
-        if not lookup:
-            result = qemu.create()
-        else:
-            result = qemu.modify()
-
-    if result.error:
-        module.fail_json(msg=str(result.error))
-    else:
-        changed = result.status
-        lookup = qemu.lookup()
-        result = {
-            "data": lookup.to_dict() if lookup else None,
-            "updated_fields": result.changes,
-            "changed": changed,
-        }
-        module.exit_json(**result)
+    changed = result.status
+    lookup = handler.lookup()
+    result = {
+        "data": lookup.to_dict() if lookup else None,
+        "updated_fields": result.changes,
+        "changed": changed,
+    }
+    module.exit_json(**result)
 
 
 if __name__ == '__main__':

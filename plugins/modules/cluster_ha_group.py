@@ -66,68 +66,16 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
-from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
-from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.resources.cluster.ha import ClusterHAGroup
-
-
-class Handler:
-    _missing_resource_regex = re.compile(r".*no such ha group '.*'.*")
-
-    def __init__(self, module: AnsibleModule) -> None:
-        self.module = module
-        self.state = module.params['state']
-        self._resource = ClusterHAGroup(module.params)
-        self._path = "cluster/ha/groups"
-
-    def lookup(self) -> ClusterHAGroup:
-        try:
-            request = Pvesh(f"{self._path}/{self._resource.group}")
-            data = request.get()
-            return ClusterHAGroup(data)
-
-        except Exception as e:
-            if self._missing_resource_regex.match(str(e)):
-                return None
-
-            self.module.fail_json(msg=str(e))
-
-    def create(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        request = Pvesh(f"{self._path}")
-        for field, value in self._resource.serialize().items():
-            if value:
-                request.add_option(field, value)
-
-        try:
-            request.create()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def remove(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        request = Pvesh(f"{self._path}/{self._resource.group}")
-        try:
-            request.delete()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def modify(self) -> Result:
-        return Result(status=False)
+from ansible_collections.margays.proxmox.plugins.module_utils.utils import AnsibleResult
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.handlers.cluster_ha_group_handler import ClusterHAGroupHandler
 
 
 def main():
     argument_spec = dict(
         group=dict(type='str', required=True),
-        nodes=dict(type='list', required=True),
+        nodes=dict(type='list', default=[]),
         comment=dict(type='str'),
         nofailback=dict(type='str'),
         restricted=dict(type='str'),
@@ -140,30 +88,32 @@ def main():
         supports_check_mode=True
     )
 
-    handler = Handler(module)
-    lookup = handler.lookup()
-    result = Result()
-    if handler.state == 'absent':
-        if lookup:
-            result = handler.remove()
-
-    elif handler.state == 'present':
-        if not lookup:
-            result = handler.create()
-        else:
-            result = handler.modify()
-
-    if result.error:
-        module.fail_json(msg=str(result.error))
-    else:
-        changed = result.status
+    handler = ClusterHAGroupHandler(Pvesh, module.params)
+    try:
         lookup = handler.lookup()
-        result = {
-            "data": lookup.to_dict() if lookup else None,
-            "updated_fields": result.changes,
-            "changed": changed,
-        }
-        module.exit_json(**result)
+        result = AnsibleResult()
+        state = module.params['state']
+        if state == 'absent':
+            if lookup:
+                result = handler.remove(module.check_mode)
+
+        elif state == 'present':
+            if not lookup:
+                result = handler.create(module.check_mode)
+            else:
+                result = handler.modify(module.check_mode)
+
+    except Exception as e:
+        module.fail_json(msg=str(e))
+
+    changed = result.status
+    lookup = handler.lookup()
+    result = {
+        "data": lookup.to_dict() if lookup else None,
+        "updated_fields": result.changes,
+        "changed": changed,
+    }
+    module.exit_json(**result)
 
 
 if __name__ == '__main__':

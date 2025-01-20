@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite errors="0" failures="1" name="mypy" skips="0" tests="1" time="2.562">
+  <testcase classname="mypy" file="mypy" line="1" name="mypy-py3_11-linux" time="2.562">
+    <failure message="mypy produced messages">plugins/module_utils/utils.py:8: error: Incompatible default for argument "changes" (default has type "None", argument has type "dict[str, str]")  [assignment]
+plugins/module_utils/utils.py:8: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+plugins/module_utils/utils.py:8: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+plugins/module_utils/proxmox/resources/resource.py:5: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/resource.py:5: note: Use "-&gt; None" if function does not return a value
+plugins/module_utils/proxmox/resources/resource.py:25: error: Returning Any from function declared to return "dict[str, str]"  [no-any-return]
+plugins/module_utils/proxmox/resources/resource.py:32: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/resource.py:32: note: Use "-&gt; None" if function does not return a value
+plugins/module_utils/proxmox/resources/resource.py:33: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/resource.py:42: error: Returning Any from function declared to return "dict[str, str]"  [no-any-return]
+plugins/module_utils/proxmox/resources/resource.py:69: error: Item "None" of "str | None" has no attribute "strip"  [union-attr]
+plugins/module_utils/proxmox/resources/resource.py:77: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/pool/pool.py:8: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/node/qemu/storage.py:91: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/node/qemu/storage.py:105: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/cluster/options.py:8: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/cluster/ha/resource.py:8: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:12: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:15: error: Unsupported left operand type for + ("None")  [operator]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:15: note: Left operand is of type "str | None"
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:28: error: Argument 1 to "_load_from_str" of "Nodes" has incompatible type "list[dict[str, Any]]"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:32: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:35: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:45: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/resources/cluster/ha/group.py:52: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/node/qemu/__init__.py:14: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/resources/node/qemu/__init__.py:51: error: Incompatible types in assignment (expression has type "list[Any]", variable has type "str | None")  [assignment]
+plugins/module_utils/proxmox/resources/node/qemu/__init__.py:76: error: Incompatible types in assignment (expression has type "list[Any]", variable has type "str | None")  [assignment]
+plugins/module_utils/proxmox/resources/node/qemu/__init__.py:77: error: Incompatible types in assignment (expression has type "list[Any]", variable has type "str | None")  [assignment]
+plugins/module_utils/proxmox/resources/node/qemu/__init__.py:100: error: Incompatible types in assignment (expression has type "list[Any]", variable has type "str | None")  [assignment]
+plugins/module_utils/proxmox/client/pvesh.py:12: error: "dict" expects 2 type arguments, but 1 given  [type-arg]
+plugins/module_utils/proxmox/client/pvesh.py:36: error: Returning Any from function declared to return "dict[Any, Any] | None"  [no-any-return]
+plugins/module_utils/proxmox/client/pvesh.py:48: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/client/pvesh.py:51: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/client/pvesh.py:54: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/client/pvesh.py:57: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/client/pvesh.py:63: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/handlers/pool_handler.py:14: error: Argument 1 to "Pool" has incompatible type "dict[str, str | int | bool | dict[Any, Any] | list[Any] | None]"; expected "dict[str, str]"  [arg-type]
+plugins/module_utils/proxmox/handlers/pool_handler.py:17: error: Missing return statement  [return]
+plugins/module_utils/proxmox/handlers/pool_handler.py:19: error: Argument 2 to "add_option" of "Client" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/pool_handler.py:20: error: Incompatible types in assignment (expression has type "dict[Any, Any]", variable has type "list[dict[str, str]]")  [assignment]
+plugins/module_utils/proxmox/handlers/pool_handler.py:22: error: Incompatible types in assignment (expression has type "Pool", variable has type "list[dict[str, str]]")  [assignment]
+plugins/module_utils/proxmox/handlers/pool_handler.py:23: error: "list[dict[str, str]]" has no attribute "poolid"  [attr-defined]
+plugins/module_utils/proxmox/handlers/pool_handler.py:24: error: Incompatible return value type (got "list[dict[str, str]]", expected "Pool | None")  [return-value]
+plugins/module_utils/proxmox/handlers/pool_handler.py:36: error: Argument 2 to "add_option" of "Client" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/pool_handler.py:44: error: Argument 2 to "add_option" of "Client" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/pool_handler.py:58: error: Argument 2 to "add_option" of "Client" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:14: error: Argument 1 to "Qemu" has incompatible type "str | int | bool | dict[Any, Any] | list[Any] | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:14: error: Argument 2 to "Qemu" has incompatible type "dict[str, str | int | bool | dict[Any, Any] | list[Any] | None]"; expected "dict[str, str]"  [arg-type]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:21: error: Argument 1 to "Qemu" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:66: error: Item "None" of "Qemu | None" has no attribute "serialize"  [union-attr]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:68: error: Need type annotation for "options" (hint: "options: dict[&lt;type&gt;, &lt;type&gt;] = ...")  [var-annotated]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:84: error: Function is missing a return type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:85: error: Function is missing a type annotation  [no-untyped-def]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:91: error: Call to untyped function "filter_comparable_parts" in typed context  [no-untyped-call]
+plugins/module_utils/proxmox/handlers/node_qemu_handler.py:111: error: Argument 1 to "join" of "str" has incompatible type "list[Any | None]"; expected "Iterable[str]"  [arg-type]</failure>
+  </testcase>
+</testsuite>

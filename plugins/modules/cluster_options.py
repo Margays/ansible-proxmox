@@ -28,42 +28,7 @@ RETURN = '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client.pvesh import Pvesh
-from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
-from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.resources.cluster import ClusterOptions
-
-
-class ClusterOptionsManager:
-    def __init__(self, module: AnsibleModule) -> None:
-        self.module = module
-        self._path = "cluster/options"
-
-    def lookup(self) -> ClusterOptions:
-        try:
-            request = Pvesh(f"{self._path}")
-            data = request.get()
-            return ClusterOptions(data)
-
-        except Exception as e:
-            self.module.fail_json(msg=str(e))
-
-    def modify(self) -> Result:
-        lookup = self.lookup()
-        expected = ClusterOptions(self.module.params)
-
-        updated_fields = expected.diff(lookup)
-
-        if self.module.check_mode or not updated_fields:
-            return Result(status=bool(updated_fields), changes=updated_fields)
-
-        request = Pvesh(f"{self._path}")
-        for key, value in updated_fields.items():
-            request.add_option(key, value)
-
-        try:
-            request.set()
-            return Result(status=True, changes=updated_fields)
-        except Exception as e:
-            return Result(status=False, error=e)
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.handlers.cluster_options_handler import ClusterOptionsHandler
 
 
 def main():
@@ -95,19 +60,19 @@ def main():
         supports_check_mode=True
     )
 
-    manager = ClusterOptionsManager(module)
-    result = manager.modify()
+    try:
+        handler = ClusterOptionsHandler(Pvesh, module.params)
+        result = handler.modify(module.check_mode)
+    except Exception as e:
+        module.fail_json(msg=str(e))
 
-    if result.error:
-        module.fail_json(msg=str(result.error))
-    else:
-        changed = result.status
-        result = {
-            "data": manager.lookup().to_dict(),
-            "updated_fields": result.changes,
-            "changed": changed,
-        }
-        module.exit_json(**result)
+    changed = result.status
+    result = {
+        "data": handler.lookup().to_dict(),
+        "updated_fields": result.changes,
+        "changed": changed,
+    }
+    module.exit_json(**result)
 
 
 if __name__ == '__main__':

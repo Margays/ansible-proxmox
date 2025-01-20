@@ -33,13 +33,14 @@ class Nodes:
         self.nodes.extend(load_objs_from_list(data, Node))
 
     def _load_from_str(self, data: str):
-        parts = data.split(':')
-        if len(parts) == 1:
-            self.nodes.append(Node({'name': parts[0]}))
-        elif len(parts) == 2:
-            self.nodes.append(Node({'name': parts[0], 'priority': parts[1]}))
-        else:
-            raise ValueError(f"Invalid format for nodes: {data}")
+        for node in data.split(','):
+            parts = node.split(':')
+            if len(parts) == 1:
+                self.nodes.append(Node({'name': parts[0]}))
+            elif len(parts) == 2:
+                self.nodes.append(Node({'name': parts[0], 'priority': parts[1]}))
+            else:
+                raise ValueError(f"Invalid format for nodes: {data}")
 
     def __str__(self):
         return ','.join([str(node) for node in self.nodes])

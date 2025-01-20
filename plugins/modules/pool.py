@@ -18,30 +18,37 @@ options:
         required: true
         description:
             - Name of the PVE pool.
+    comment:
+        required: false
+        description:
+            - Pool's comment.
     state:
         required: false
         default: "present"
         choices: [ "present", "absent" ]
         description:
             - Specifies whether the pool should exist or not.
-    comment:
-        required: false
-        description:
-            - Pool's comment.
 
 author:
     - Lukasz Wencel (@lwencel-priv)
 '''
 
 EXAMPLES = '''
-- name: Create Kubernetes pool
-  proxmox_pool:
-    name: kubernetes
+- name: Create kubernetes pool
+  margays.proxmox.pool:
+    poolid: kubernetes
+    state: present
 
 - name: Create admins pool
-  proxmox_pool:
-    name: pool_devops
+  margays.proxmox.pool:
+    poolid: pool_devops
     comment: DevOps users allowed to access on this pool.
+    state: present
+
+- name: Delete kubernetes pool
+  margays.proxmox.pool:
+    poolid: kubernetes
+    state: absent
 '''
 
 RETURN = '''
@@ -53,117 +60,49 @@ updated_fields:
     type: list
 '''
 
-import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.client import Pvesh
-from ansible_collections.margays.proxmox.plugins.module_utils.utils import Result
-from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.resources.pool import Pool
-from typing import List, Dict
-from typing import Optional
-
-
-class ProxmoxPool:
-    _pool_not_found_regex = re.compile(r".*pool '.*' does not exist.*")
-
-    def __init__(self, module: AnsibleModule):
-        self.module = module
-        self._pool = Pool(module.params)
-        self.state: str = module.params['state']
-        self._path = "pools"
-
-    def lookup(self) -> Optional[Pool]:
-        try:
-            request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
-            pool: List[Dict[str, str]] = request.get()
-            for raw_pool in pool:
-                pool = Pool(raw_pool)
-                if pool.poolid == self._pool.poolid:
-                    return pool
-
-        except Exception as e:
-            if self._pool_not_found_regex.match(str(e)):
-                return None
-
-            self.module.fail_json(msg=str(e))
-
-    def remove(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        try:
-            request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
-            request.delete()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def create(self) -> Result:
-        if self.module.check_mode:
-            return Result(status=True)
-
-        request = Pvesh(self._path).add_option("poolid", self._pool.poolid)
-        if self._pool.comment:
-            request.add_option("comment", self._pool.comment)
-
-        try:
-            request.create()
-            return Result(status=True)
-        except Exception as e:
-            return Result(status=False, error=e)
-
-    def modify(self) -> Result:
-        lookup = self.lookup()
-        diff = self._pool.diff(lookup)
-
-        if self.module.check_mode or not diff:
-            return Result(status=bool(diff), changes=diff)
-
-        request = Pvesh(f"{self._path}").add_option("poolid", self._pool.poolid)
-        for key, value in diff.items():
-            request.add_option(key, value)
-
-        try:
-            request.set()
-            return Result(status=True, changes=diff)
-        except Exception as e:
-            return Result(status=False, error=e)
+from ansible_collections.margays.proxmox.plugins.module_utils.utils import AnsibleResult
+from ansible_collections.margays.proxmox.plugins.module_utils.proxmox.handlers.pool_handler import PoolHandler
 
 
 def main():
     module = AnsibleModule(
         argument_spec = dict(
             poolid=dict(type='str', required=True),
-            state=dict(default='present', choices=['present', 'absent'], type='str'),
             comment=dict(default="", type='str'),
+
+            state=dict(default='present', choices=['present', 'absent'], type='str'),
         ),
         supports_check_mode=True
     )
 
-    pool = ProxmoxPool(module)
+    handler = PoolHandler(Pvesh, module.params)
+    try:
+        lookup = handler.lookup()
+        result = AnsibleResult()
+        state = module.params['state']
+        if state == 'absent':
+            if lookup:
+                result = handler.remove(module.check_mode)
 
-    lookup = pool.lookup()
-    result = Result()
-    if pool.state == 'absent':
-        if lookup:
-            result = pool.remove()
+        elif state == 'present':
+            if not lookup:
+                result = handler.create(module.check_mode)
+            else:
+                result = handler.modify(module.check_mode)
 
-    elif pool.state == 'present':
-        if not lookup:
-            result = pool.create()
-        else:
-            result = pool.modify()
+    except Exception as e:
+        module.fail_json(msg=str(e))
 
-    if result.error:
-        module.fail_json(msg=str(result.error))
-    else:
-        changed = result.status
-        lookup = pool.lookup()
-        result = {
-            "data": lookup.to_dict() if lookup else None,
-            "updated_fields": result.changes,
-            "changed": changed,
-        }
-        module.exit_json(**result)
+    changed = result.status
+    lookup = handler.lookup()
+    result = {
+        "data": lookup.to_dict() if lookup else None,
+        "updated_fields": result.changes,
+        "changed": changed,
+    }
+    module.exit_json(**result)
 
 
 if __name__ == '__main__':

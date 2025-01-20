@@ -2,12 +2,12 @@
 - name: Configure proxmox
   hosts: proxmox
   tasks:
-    # - name: Delete VM
-    #   margays.proxmox.node_qemu:
-    #     node: "testprox"
-    #     vmid: "101"
-    #     destroy_unreferenced_disks: true
-    #     state: absent
+    - name: Delete VM
+      margays.proxmox.node_qemu:
+        node: "testprox"
+        vmid: "101"
+        destroy_unreferenced_disks: true
+        state: absent
 
     - name: Create VM
       margays.proxmox.node_qemu:

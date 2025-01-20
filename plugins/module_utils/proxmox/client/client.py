@@ -1,0 +1,21 @@
+from typing import Protocol
+
+
+class Client(Protocol):
+    def __init__(self, path: str) -> None:
+        ...
+    
+    def get(self) -> dict:
+        ...
+
+    def create(self) -> None:
+        ...
+
+    def set(self) -> None:
+        ...
+
+    def delete(self) -> None:
+        ...
+
+    def add_option(self, field: str, value: str) -> "Client":
+        ...

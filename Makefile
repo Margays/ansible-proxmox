@@ -8,3 +8,10 @@ ANSIBLE_USER := root
 release:
 	echo "Releasing role to Ansible Galaxy"
 	bash $(MKFILE_DIR)/.github/scripts/release.sh $(GALAXY_API_KEY) proxmox
+
+.PHONY: test
+test:
+	echo "Running tests"
+	cd $(MKFILE_DIR)/plugins
+	export PYTHONPATH=$(MKFILE_DIR)/plugins
+	pytest test
