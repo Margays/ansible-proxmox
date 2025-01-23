@@ -54,16 +54,14 @@ class Pvesh:
         command = self.__create_cmd(method)
         result = self._run(command)
         if result.return_code != 0:
-            raise Exception(
-                f"Pvesh command {command} failed with error: {result.stderr.decode('utf-8')}"
-            )
+            raise Exception(f"Pvesh command {command} failed with error: {result.stderr.decode('utf-8')}")
 
         return self.__decode_output(result.stdout)
 
     def add_option(self, name: str, value: str = "") -> "Pvesh":
         self._options[name] = value
         return self
-    
+
     def with_format(self, format: str) -> "Pvesh":
         self._format = format
         return self

@@ -13,7 +13,7 @@ class NodeQemuHandler(BaseHandler):
         super().__init__(client)
         self._resource = Qemu(params["node"], params)
         self._path = f"nodes/{self._resource.node}/qemu"
-  
+
     def lookup(self) -> Optional[Qemu]:
         try:
             request = self._client_class(f"{self._path}/{self._resource.vmid}/config")
@@ -50,7 +50,7 @@ class NodeQemuHandler(BaseHandler):
 
         request = self._client_class(f"{self._path}")
         for field, value in self._resource.serialize().items():
-            if field in ['node']:
+            if field in ["node"]:
                 continue
 
             if value:

@@ -4,7 +4,7 @@ from typing import Dict, Optional, List
 class __Base:
     def __init__(self):
         self._mappings: Dict[str, str] = {}
-        self._serialize_skip: List[str] = ['_mappings', '_serialize_skip']
+        self._serialize_skip: List[str] = ["_mappings", "_serialize_skip"]
 
     def to_dict(self) -> Dict[str, str]:
         data = {}
@@ -21,7 +21,7 @@ class __Base:
         if value is None:
             return {}
 
-        if hasattr(value, 'to_dict'):
+        if hasattr(value, "to_dict"):
             return value.to_dict()
         else:
             mapped_key = self._mappings.get(key, key)
@@ -32,13 +32,13 @@ class Resource(__Base):
     def __init__(self):
         super().__init__()
         self._diff_skip: List[str] = []
-        self._serialize_skip.extend(['_diff_skip'])
+        self._serialize_skip.extend(["_diff_skip"])
 
     def __normalize(self, key: str, value: Optional[str]) -> Dict[str, str]:
         if value is None:
             return {}
 
-        if hasattr(value, 'serialize'):
+        if hasattr(value, "serialize"):
             return value.serialize()
         else:
             mapped_key = self._mappings.get(key, key)
@@ -55,10 +55,10 @@ class Resource(__Base):
                     data.update(self.__normalize(key, item))
             else:
                 data.update(self.__normalize(key, value))
-        
+
         return data
 
-    def diff(self, other: Optional['Resource']) -> Dict[str, str]:
+    def diff(self, other: Optional["Resource"]) -> Dict[str, str]:
         diff: Dict[str, str] = {}
         serialized_other = other.serialize() if other else {}
         for key, value in self.serialize().items():
@@ -77,7 +77,7 @@ class ResourceField(__Base):
         super().__init__()
         self._name = name
         self.idx = idx
-        self._serialize_skip.extend(['idx', '_name'])
+        self._serialize_skip.extend(["idx", "_name"])
 
     def serialize(self) -> Dict[str, str]:
         params = []
