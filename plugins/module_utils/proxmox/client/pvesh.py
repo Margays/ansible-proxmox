@@ -2,6 +2,14 @@ import subprocess
 import json
 from typing import Optional, Dict
 from copy import deepcopy
+from dataclasses import dataclass
+
+
+@dataclass
+class CommandResult:
+    return_code: int
+    stderr: bytes
+    stdout: bytes
 
 
 class Pvesh:
@@ -11,24 +19,29 @@ class Pvesh:
         self._path = path.lower()
         self._options: Dict[str] = {}
 
-    def _pvesh(self, method: str) -> Optional[dict]:
+    def __create_cmd(self, method: str) -> list[str]:
         # call pvesh command with the given path
         command = [self._command, method, self._path]
         for key, value in self._options.items():
             command.append(f"--{key}={value}")
 
         command.append(f"--output-format={self._format}")
+        return command
+
+    def _run(self, command: list[str]) -> CommandResult:
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         (stdout, stderr) = process.communicate()
-        if process.returncode != 0:
-            raise Exception(
-                f"Pvesh command {command} failed with error: {stderr.decode('utf-8')}"
-            )
+        return CommandResult(
+            return_status=process.returncode,
+            stderr=stderr,
+            stdout=stdout,
+        )
 
+    def __decode_output(self, stdout: bytes) -> dict:
         if stdout == b"":
             return {}
 
@@ -36,6 +49,16 @@ class Pvesh:
             return json.loads(stdout.decode("utf-8"))
         except json.JSONDecodeError as e:
             return {"stdout": stdout.decode("utf-8"), "error": str(e)}
+
+    def _pvesh(self, method: str) -> Optional[dict]:
+        command = self.__create_cmd(method)
+        result = self._run(command)
+        if result.return_code != 0:
+            raise Exception(
+                f"Pvesh command {command} failed with error: {result.stderr.decode('utf-8')}"
+            )
+
+        return self.__decode_output(result.stdout)
 
     def add_option(self, name: str, value: str = "") -> "Pvesh":
         self._options[name] = value

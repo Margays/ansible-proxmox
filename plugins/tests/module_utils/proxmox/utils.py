@@ -1,0 +1,35 @@
+from dataclasses import dataclass
+from queue import Queue
+from module_utils.proxmox.client.pvesh import Pvesh, CommandResult
+from module_utils.proxmox.client.client import Client
+
+
+@dataclass
+class Response:
+    command: list[str]
+    return_code: int
+    stdout: bytes
+    stderr: bytes
+
+
+def create_client(responses: list[Response]) -> type[Client]:
+    class FakeClient(Pvesh):
+        responses: Queue[Response] = Queue()
+
+        def _run(self, command: list[str]) -> CommandResult:
+            result = self.responses.get()
+            if result.command != command:
+                raise ValueError(
+                    f"Expected command {result.command} but got {command}"
+                )
+
+            return CommandResult(
+                return_code=result.return_code,
+                stdout=result.stdout,
+                stderr=result.stderr,
+            )
+
+    for r in responses:
+        FakeClient.responses.put(r)
+
+    return FakeClient
