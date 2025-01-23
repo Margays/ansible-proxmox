@@ -47,4 +47,18 @@ class ClusterHAGroupHandler(BaseHandler):
         return AnsibleResult(status=True)
 
     def modify(self, check: bool) -> AnsibleResult:
-        return AnsibleResult(status=False)
+        lookup = self.lookup()
+        updated_fields = self._resource.diff(lookup)
+
+        if check or not updated_fields:
+            return AnsibleResult(status=bool(updated_fields), changes=updated_fields)
+
+        request = self._client_class(f"{self._path}/{self._resource.group}")
+        for key, value in updated_fields.items():
+            if key == "group":
+                continue
+
+            request.add_option(key, value)
+
+        request.set()
+        return AnsibleResult(status=True, changes=updated_fields)

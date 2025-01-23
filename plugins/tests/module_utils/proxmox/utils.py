@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from queue import Queue
+from typing import Iterable
 from module_utils.proxmox.client.pvesh import Pvesh, CommandResult
 from module_utils.proxmox.client.client import Client
 
@@ -12,12 +13,12 @@ class Response:
     stderr: bytes
 
 
-def create_client(responses: list[Response]) -> type[Client]:
+def create_client(responses: Iterable[Response]) -> type[Client]:
     class FakeClient(Pvesh):
         responses: Queue[Response] = Queue()
 
         def _run(self, command: list[str]) -> CommandResult:
-            result = self.responses.get()
+            result = FakeClient.responses.get_nowait()
             if result.command != command:
                 raise ValueError(
                     f"Expected command {result.command} but got {command}"
