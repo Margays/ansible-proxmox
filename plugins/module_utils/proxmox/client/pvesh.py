@@ -36,7 +36,7 @@ class Pvesh:
         )
         (stdout, stderr) = process.communicate()
         return CommandResult(
-            return_status=process.returncode,
+            return_code=process.returncode,
             stderr=stderr,
             stdout=stdout,
         )
