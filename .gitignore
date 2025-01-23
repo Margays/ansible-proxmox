@@ -4,3 +4,4 @@ __pycache__
 *.pyc
 build
 .tox
+tox_files
