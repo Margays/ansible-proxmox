@@ -47,7 +47,7 @@ from ..utils import create_client, Response
                 "bwlimit": "200",
                 "console": "tty",
                 "crs": "enabled",
-                "description": "Test Cluster",
+                "description": "Test Cluster2",
                 "email_from": "test@example.com",
                 "fencing": "enabled",
                 "ha": "enabled",
@@ -74,7 +74,7 @@ from ..utils import create_client, Response
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "cluster/options", "--bwlimit=200", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "cluster/options", "--bwlimit=200", "--description=Test Cluster2", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
