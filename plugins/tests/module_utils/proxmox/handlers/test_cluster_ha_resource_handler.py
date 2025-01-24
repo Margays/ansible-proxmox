@@ -17,7 +17,7 @@ from ..utils import create_client, Response
                 Response(
                     command=["/usr/bin/pvesh", "get", "cluster/ha/resources/vm:101", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"sid": "vm:101", "group": "test", "resource_state": "disabled"}',
+                    stdout=b'{"sid": "vm:101", "group": "test", "state": "disabled"}',
                     stderr=b'',
                 ),
             ],
@@ -34,11 +34,11 @@ from ..utils import create_client, Response
                 Response(
                     command=["/usr/bin/pvesh", "get", "cluster/ha/resources/vm:101", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"sid": "vm:101", "group": "test", "resource_state": "disabled"}',
+                    stdout=b'{"sid": "vm:101", "group": "test", "state": "disabled"}',
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "cluster/ha/resources/vm:101", "--resource_state=enabled", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "cluster/ha/resources/vm:101", "--state=enabled", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
@@ -68,9 +68,9 @@ def test_cluster_ha_resource_handler_modify(input_data: dict, responses: Iterabl
             },
             [
                 Response(
-                    command=["/usr/bin/pvesh", "create", "cluster/ha/resources", "--sid=vm:101", "--group=test", "--resource_state=disabled", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "create", "cluster/ha/resources", "--sid=vm:101", "--group=test", "--state=disabled", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"sid": "vm:101", "group": "test", "resource_state": "disabled"}',
+                    stdout=b'',
                     stderr=b'',
                 ),
             ],
