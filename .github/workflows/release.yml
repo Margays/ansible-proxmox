@@ -1,0 +1,33 @@
+name: Release to Ansible Galaxy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt tox
+          ansible-galaxy collection install --force-with-deps --force -r requirements.yml
+
+      - name: Run tests
+        run: tox -e pytest
+
+      - name: Run release
+        run: make release
+        env:
+          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}

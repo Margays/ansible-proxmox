@@ -8,6 +8,10 @@ ANSIBLE_USER := root
 release:
 	echo "Releasing role to Ansible Galaxy"
 	bash $(MKFILE_DIR)/.github/scripts/release.sh $(GALAXY_API_KEY) proxmox
+	sed -i 's/^version: .*/version: $$(python -c "import semver; print(semver.VersionInfo.parse(open(\"galaxy.yml\").read().split(\"version: \")[1].split()[0]).bump_patch())")/' galaxy.yml
+	git add galaxy.yml
+	git commit -m "Bump version in galaxy.yml"
+	git push
 
 .PHONY: test
 test:
