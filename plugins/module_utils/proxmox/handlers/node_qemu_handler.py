@@ -32,13 +32,13 @@ class NodeQemuHandler(BaseHandler):
             return AnsibleResult(status=True)
 
         request = self._client_class(f"{self._path}/{self._resource.vmid}")
-        if self._resource.destroy_unreferenced_disks is not None:
+        if self._resource.destroy_unreferenced_disks:
             request.add_option("destroy-unreferenced-disks", self._resource.destroy_unreferenced_disks)
 
-        if self._resource.purge is not None:
+        if self._resource.purge:
             request.add_option("purge", self._resource.purge)
 
-        if self._resource.skiplock is not None:
+        if self._resource.skiplock:
             request.add_option("skiplock", self._resource.skiplock)
 
         request.delete()
