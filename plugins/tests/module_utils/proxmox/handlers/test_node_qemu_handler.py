@@ -38,7 +38,7 @@ from ..utils import create_client, Response
                 Response(
                     command=["/usr/bin/pvesh", "get", "nodes/testprox/qemu/101/config", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio,bridge=vmbr0,tag=101", "net1": "virtio,bridge=vmbr0,tag=102", "net2": "virtio,bridge=vmbr0,tag=103", "scsi0": "local-lvm:1,cache=writeback", "ide0": "local-lvm:1,cache=writeback", "sata0": "local-lvm:1,cache=writeback", "virtio0": "local-lvm:1,cache=writeback"}',
+                    stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=101", "net1": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=102", "net2": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=103", "scsi0": "local-lvm:vm-name,cache=writeback,size=1", "ide0": "local-lvm:vm-name,cache=writeback,size=1", "sata0": "local-lvm:vm-name,cache=writeback,size=1", "virtio0": "local-lvm:vm-name,cache=writeback,size=1"}',
                     stderr=b'',
                 ),
             ],
@@ -60,7 +60,7 @@ from ..utils import create_client, Response
                     {"idx": 2, "model": "virtio", "bridge": "vmbr0", "tag": 103},
                 ],
                 "scsi": [
-                    {"idx": 0, "storage": "local-lvm", "size": 1, "cache": "writeback"},
+                    {"idx": 0, "storage": "local-lvm", "size": 1, "cache": "writethrough"},
                 ],
                 "ide": [
                     {"idx": 0, "storage": "local-lvm", "size": 1, "cache": "writeback"},
@@ -76,11 +76,11 @@ from ..utils import create_client, Response
                 Response(
                     command=["/usr/bin/pvesh", "get", "nodes/testprox/qemu/101/config", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio,bridge=vmbr0,tag=101", "net1": "virtio,bridge=vmbr0,tag=102", "net2": "virtio,bridge=vmbr0,tag=103", "scsi0": "local-lvm:1,cache=writeback", "ide0": "local-lvm:1,cache=writeback", "sata0": "local-lvm:1,cache=writeback", "virtio0": "local-lvm:1,cache=writeback"}',
+                    stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=101", "net1": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=102", "net2": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=103", "scsi0": "local-lvm:vm-name,cache=writeback,size=1", "ide0": "local-lvm:vm-name,cache=writeback,size=1", "sata0": "local-lvm:vm-name,cache=writeback,size=1"}',
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/config", "--memory=8192", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/config", "--memory=8192", "--scsi0=file=local-lvm:vm-name,cache=writethrough,size=1", "--virtio0=file=local-lvm:1,cache=writeback,size=1", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
@@ -131,7 +131,7 @@ def test_node_qemu_handler_modify(input_data: dict, responses: Iterable[Response
             },
             [
                 Response(
-                    command=["/usr/bin/pvesh", "create", "nodes/testprox/qemu", "--vmid=101", "--name=testvm", "--cores=4", "--memory=4096", "--tags=test", "--pool=test", "--net0=virtio,bridge=vmbr0,tag=101", "--net1=virtio,bridge=vmbr0,tag=102", "--net2=virtio,bridge=vmbr0,tag=103", "--scsi0=local-lvm:1,cache=writeback", "--ide0=local-lvm:1,cache=writeback", "--sata0=local-lvm:1,cache=writeback", "--virtio0=local-lvm:1,cache=writeback", "--output-format=json"],
+                    command=['/usr/bin/pvesh', 'create', 'nodes/testprox/qemu', '--vmid=101', '--cores=4', '--ide0=file=local-lvm:1,cache=writeback,size=1', '--memory=4096', '--name=testvm', '--net0=model=virtio,bridge=vmbr0,tag=101', '--net1=model=virtio,bridge=vmbr0,tag=102', '--net2=model=virtio,bridge=vmbr0,tag=103', '--pool=test', '--sata0=file=local-lvm:1,cache=writeback,size=1', '--scsi0=file=local-lvm:1,cache=writeback,size=1', '--tags=test', '--virtio0=file=local-lvm:1,cache=writeback,size=1', '--output-format=json'],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
@@ -170,7 +170,42 @@ def test_node_qemu_handler_create(input_data: dict, responses: Iterable[Response
                 ),
             ],
             True,
-            id="existing-resource",
+            id="all-params",
+        ),
+        pytest.param(
+            {
+                "node": "testprox",
+                "vmid": "101",
+                "destroy_unreferenced_disks": False,
+                "purge": False,
+                "skiplock": False,
+            },
+            [
+                Response(
+                    command=["/usr/bin/pvesh", "delete", "nodes/testprox/qemu/101", "--output-format=json"],
+                    return_code=0,
+                    stdout=b'',
+                    stderr=b'',
+                ),
+            ],
+            True,
+            id="optional-params-set-to-false",
+        ),
+        pytest.param(
+            {
+                "node": "testprox",
+                "vmid": "101",
+            },
+            [
+                Response(
+                    command=["/usr/bin/pvesh", "delete", "nodes/testprox/qemu/101", "--output-format=json"],
+                    return_code=0,
+                    stdout=b'',
+                    stderr=b'',
+                ),
+            ],
+            True,
+            id="only-required-params",
         ),
     ]
 )
@@ -187,7 +222,7 @@ def test_node_qemu_handler_lookup() -> None:
         Response(
             command=["/usr/bin/pvesh", "get", "nodes/testprox/qemu/101/config", "--output-format=json"],
             return_code=0,
-            stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio,bridge=vmbr0,tag=101", "net1": "virtio,bridge=vmbr0,tag=102", "net2": "virtio,bridge=vmbr0,tag=103", "scsi0": "local-lvm:1,cache=writeback", "ide0": "local-lvm:1,cache=writeback", "sata0": "local-lvm:1,cache=writeback", "virtio0": "local-lvm:1,cache=writeback"}',
+            stdout=b'{"vmid": "101", "name": "testvm", "cores": 4, "memory": 4096, "tags": "test", "pool": "test", "net0": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=101", "net1": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=102", "net2": "virtio=00:00:00:00:00:00,bridge=vmbr0,tag=103", "scsi0": "local-lvm:vm-name,cache=writeback,size=32G", "ide0": "local-lvm:1,cache=writeback,size=32G", "sata0": "local-lvm:vm-name,cache=writeback,size=32G", "virtio0": "local-lvm:vm-name,cache=writeback,size=32G"}',
             stderr=b'',
         ),
     ]
@@ -202,23 +237,23 @@ def test_node_qemu_handler_lookup() -> None:
     assert result.pool == "test"
     assert result.net[0].model == "virtio"
     assert result.net[0].bridge == "vmbr0"
-    assert result.net[0].tag == 101
+    assert result.net[0].tag == "101"
     assert result.net[1].model == "virtio"
     assert result.net[1].bridge == "vmbr0"
-    assert result.net[1].tag == 102
+    assert result.net[1].tag == "102"
     assert result.net[2].model == "virtio"
     assert result.net[2].bridge == "vmbr0"
-    assert result.net[2].tag == 103
-    assert result.scsi[0].storage == "local-lvm"
-    assert result.scsi[0].size == 1
+    assert result.net[2].tag == "103"
+    assert result.scsi[0].file == "local-lvm:vm-name"
+    assert result.scsi[0].size == "32"
     assert result.scsi[0].cache == "writeback"
-    assert result.ide[0].storage == "local-lvm"
-    assert result.ide[0].size == 1
+    assert result.ide[0].file == "local-lvm:1"
+    assert result.ide[0].size == "32"
     assert result.ide[0].cache == "writeback"
-    assert result.sata[0].storage == "local-lvm"
-    assert result.sata[0].size == 1
+    assert result.sata[0].file == "local-lvm:vm-name"
+    assert result.sata[0].size == "32"
     assert result.sata[0].cache == "writeback"
-    assert result.virtio[0].storage == "local-lvm"
-    assert result.virtio[0].size == 1
+    assert result.virtio[0].file == "local-lvm:vm-name"
+    assert result.virtio[0].size == "32"
     assert result.virtio[0].cache == "writeback"
     assert client.responses.empty()

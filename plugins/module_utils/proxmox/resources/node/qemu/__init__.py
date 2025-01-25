@@ -15,7 +15,7 @@ class Qemu(Resource):
         data = self._normalize_proxmox_format(raw)
         vmid = data.get("vmid", None)
         self.node: Optional[str] = node
-        self.vmid: Optional[str] = str(vmid) if vmid else None
+        self.vmid: Optional[str] = str(vmid) if vmid is not None else None
 
         # Create options
         self.acpi: Optional[str] = data.get("acpi", None)
@@ -48,7 +48,7 @@ class Qemu(Resource):
         self.hostpci: Optional[str] = data.get("hostpci", None)
         self.hookscript: Optional[str] = data.get("hookscript", None)
         self.hugepages: Optional[str] = data.get("hugepages", None)
-        self.ide: Optional[str] = load_objs_from_list(data.get("ide", []), IDEStorage)
+        self.ide: List[IDEStorage] = load_objs_from_list(data.get("ide", []), IDEStorage)
         self.import_working_storage: Optional[str] = data.get("import-working-storage", None)
         self.ipconfig: Optional[str] = data.get("ipconfig", None)
         self.ivshmem: Optional[str] = data.get("ivshmem", None)
@@ -73,8 +73,8 @@ class Qemu(Resource):
         self.protection: Optional[str] = data.get("protection", None)
         self.reboot: Optional[str] = data.get("reboot", None)
         self.rng0: Optional[str] = data.get("rng0", None)
-        self.sata: Optional[str] = load_objs_from_list(data.get("sata", []), SATAStorage)
-        self.scsi: Optional[str] = load_objs_from_list(data.get("scsi", []), SCSIStorage)
+        self.sata: list[SATAStorage] = load_objs_from_list(data.get("sata", []), SATAStorage)
+        self.scsi: list[SCSIStorage] = load_objs_from_list(data.get("scsi", []), SCSIStorage)
         self.scsihw: Optional[str] = data.get("scsihw", None)
         self.searchdomain: Optional[str] = data.get("searchdomain", None)
         self.serial: Optional[str] = data.get("serial", None)
@@ -97,15 +97,17 @@ class Qemu(Resource):
         self.usb: Optional[str] = data.get("usb", None)
         self.vcpus: Optional[str] = data.get("vcpus", None)
         self.vga: Optional[str] = data.get("vga", None)
-        self.virtio: Optional[str] = load_objs_from_list(data.get("virtio", []), VIRTIOStorage)
+        self.virtio: list[VIRTIOStorage] = load_objs_from_list(data.get("virtio", []), VIRTIOStorage)
         self.vmgenid: Optional[str] = data.get("vmgenid", None)
         self.vmstatestorage: Optional[str] = data.get("vmstatestorage", None)
         self.watchdog: Optional[str] = data.get("watchdog", None)
 
         # Delete options
-        self.destroy_unreferenced_disks: Optional[str] = data.get("destroy-unreferenced-disks", None)
-        self.purge: Optional[str] = data.get("purge", None)
-        self.skiplock: Optional[str] = data.get("skiplock", None)
+        self.destroy_unreferenced_disks: bool = data.get(
+            "destroy-unreferenced-disks", data.get("destroy_unreferenced_disks", False)
+        )
+        self.purge: bool = data.get("purge", False)
+        self.skiplock: bool = data.get("skiplock", False)
 
         self._mappings.update(
             {
