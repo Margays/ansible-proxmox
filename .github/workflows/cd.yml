@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  ci-tests:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs:
+      - ci-tests
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Run release
+        run: bash .github/scripts/release/release.sh ${{ github.event.inputs.release_type }}
+        env:
+          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
