@@ -7,7 +7,7 @@ bump_version() {
     fi
     echo "Bumping version"
     pip install -r .github/scripts/release/requirements.txt
-    python .github/scripts/release/bump_version.py $1
+    python .github/scripts/release/bump_version.py --type=$1
 }
 
 release() {
