@@ -1,13 +1,13 @@
-name: Release to Ansible Galaxy
+name: CI
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,13 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt tox
-          ansible-galaxy collection install --force-with-deps --force -r requirements.yml
+          pip install tox
 
       - name: Run tests
         run: tox -e pytest
-
-      - name: Run release
-        run: make release
-        env:
-          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
