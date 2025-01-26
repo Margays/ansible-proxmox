@@ -7,7 +7,7 @@ bump_version() {
     fi
     echo "Bumping version"
     pip install -r .github/scripts/release/requirements.txt
-    python .github/scripts/release/update_version.py $1
+    python .github/scripts/release/bump_version.py $1
 }
 
 release() {
@@ -21,8 +21,8 @@ release() {
 }
 
 commit_changes() {
-    git config --global user.email "github-actions[bot]@users.noreply.github.com"
-    git config --global user.name "github-actions[bot]"
+    git config --global user.email "196515190+margay-bot@users.noreply.github.com"
+    git config --global user.name "Margay Bot"
     git add .
     local current_version=$(grep -oP 'version: \K[0-9]+\.[0-9]+\.[0-9]+' galaxy.yml)
     git commit -m "Release version $current_version"
@@ -37,6 +37,7 @@ main() {
         exit 1
     fi
     bump_version $1
+    commit_changes
     release "proxmox"
 }
 
