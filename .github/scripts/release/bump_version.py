@@ -1,5 +1,6 @@
 import semver
 import argparse
+import yaml
 from pathlib import Path
 
 
