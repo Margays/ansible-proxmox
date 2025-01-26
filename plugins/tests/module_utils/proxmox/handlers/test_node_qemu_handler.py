@@ -60,7 +60,7 @@ from ..utils import create_client, Response
                     {"idx": 2, "model": "virtio", "bridge": "vmbr0", "tag": 103},
                 ],
                 "scsi": [
-                    {"idx": 0, "storage": "local-lvm", "size": 1, "cache": "writethrough"},
+                    {"idx": 0, "storage": "local-lvm", "size": 2, "cache": "writethrough"},
                 ],
                 "ide": [
                     {"idx": 0, "storage": "local-lvm", "size": 1, "cache": "writeback"},
@@ -80,7 +80,13 @@ from ..utils import create_client, Response
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/config", "--memory=8192", "--scsi0=file=local-lvm:vm-name,cache=writethrough,size=1", "--virtio0=file=local-lvm:1,cache=writeback,size=1", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/config", "--memory=8192", "--scsi0=file=local-lvm:vm-name,cache=writethrough,size=2", "--virtio0=file=local-lvm:1,cache=writeback,size=1", "--output-format=json"],
+                    return_code=0,
+                    stdout=b'',
+                    stderr=b'',
+                ),
+                Response(
+                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/resize", "--disk=scsi0", "--size=2", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
