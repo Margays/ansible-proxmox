@@ -86,7 +86,7 @@ from ..utils import create_client, Response
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/resize", "--disk=scsi0", "--size=2", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "nodes/testprox/qemu/101/resize", "--disk=scsi0", "--size=2G", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
