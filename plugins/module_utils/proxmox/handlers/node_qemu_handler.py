@@ -66,9 +66,11 @@ class NodeQemuHandler(BaseHandler):
         serialized_lookup = lookup.serialize()
         request = self._client_class(f"{self._path}/{self._resource.vmid}/config")
         options = {}
+        reqeusts: list[Client] = [request]
         for key, value in updated_fields.items():
             if self._resource.storage_regex.match(key):
                 self._add_storage_options(options, key, value, serialized_lookup)
+                reqeusts.append(self._resize_disk(key, value, serialized_lookup))
             else:
                 options[key] = value
 
@@ -78,7 +80,10 @@ class NodeQemuHandler(BaseHandler):
         for key, value in options.items():
             request.add_option(key, value)
 
-        request.set()
+        for r in reqeusts:
+            if r:
+                r.set()
+
         return AnsibleResult(status=True, changes=updated_fields)
 
     def _add_storage_options(self, options: dict, field: str, value: str, serialized_lookup: dict):
@@ -109,3 +114,21 @@ class NodeQemuHandler(BaseHandler):
                 final_parts.append(f"{lookup_import}")
 
             options[field] = ",".join(final_parts)
+
+    def _resize_disk(self, field: str, value: str, serialized_lookup: dict) -> None:
+        lookup_disk_size = next(filter(lambda x: "size=" in x, serialized_lookup.get(field, "").split(",")), None)
+        expected_disk_size = next(filter(lambda x: "size=" in x, value.split(",")), None)
+
+        if not lookup_disk_size:
+            return
+
+        if expected_disk_size < lookup_disk_size:
+            raise ValueError(f"Cannot shrink disk size from {lookup_disk_size} to {expected_disk_size}")
+
+        if lookup_disk_size == expected_disk_size:
+            return
+
+        request = self._client_class(f"{self._path}/{self._resource.vmid}/resize")
+        request.add_option("disk", field)
+        request.add_option("size", expected_disk_size.split("=")[1] + "G")
+        return request
