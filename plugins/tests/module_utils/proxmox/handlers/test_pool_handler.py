@@ -109,3 +109,20 @@ def test_pool_handler_delete(input_data: dict, responses: list[Response], change
     ansible_result = handler.remove(check=False)
     assert ansible_result.status == changed
     assert client.responses.empty()
+
+
+def test_pool_handler_lookup() -> None:
+    responses = [
+        Response(
+            command=["/usr/bin/pvesh", "get", "pools", "--poolid=testpool", "--output-format=json"],
+            return_code=0,
+            stdout=b'[{"poolid": "testpool", "comment": "Test pool"}]',
+            stderr=b'',
+        ),
+    ]
+    client = create_client(responses)
+    handler = PoolHandler(client, {"poolid": "testpool"})
+    result = handler.lookup()
+    assert result.poolid == "testpool"
+    assert result.comment == "Test pool"
+    assert client.responses.empty()
