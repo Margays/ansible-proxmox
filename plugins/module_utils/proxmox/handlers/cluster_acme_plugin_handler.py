@@ -6,7 +6,7 @@ from ..resources.cluster.acme import ClusterAcmePlugin
 from .base import BaseHandler
 
 
-class ClusterAcmePlugin(BaseHandler):
+class ClusterAcmePluginHandler(BaseHandler):
     _missing_resource_regex = re.compile(r".*ACME plugin '.*' not defined.*")
 
     def __init__(self, client: type[Client], params: AnsibleParams) -> None:
