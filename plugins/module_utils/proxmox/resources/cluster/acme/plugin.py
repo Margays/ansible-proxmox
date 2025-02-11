@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 from ...resource import Resource
 
 
-class ClusterAcmeAccount(Resource):
+class ClusterAcmePlugin(Resource):
 
     def __init__(self, data: Dict[str, Any]):
         super().__init__()
