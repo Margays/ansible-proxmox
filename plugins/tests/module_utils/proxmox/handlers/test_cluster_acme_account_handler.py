@@ -31,9 +31,9 @@ from ..utils import create_client, Response
             {
                 "name": "test",
                 "contact": "test@example.com",
-                "directory": "https://example.com/directory",
-                "eab_hmac_key": "test_hmac_key",
-                "eab_kid": "test_kid",
+                "directory": "https://example.com/directory2",
+                "eab-hmac-key": "test_hmac_key",
+                "eab-kid": "test_kid",
                 "tos_url": "https://example.com/tos",
             },
             [
@@ -44,7 +44,7 @@ from ..utils import create_client, Response
                     stderr=b'',
                 ),
                 Response(
-                    command=["/usr/bin/pvesh", "set", "cluster/acme/account/test", "--contact=test@example.com", "--directory=https://example.com/directory", "--eab-hmac-key=test_hmac_key", "--eab-kid=test_kid", "--tos_url=https://example.com/tos", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "set", "cluster/acme/account/test", "--directory=https://example.com/directory2", "--output-format=json"],
                     return_code=0,
                     stdout=b'',
                     stderr=b'',
@@ -71,13 +71,13 @@ def test_cluster_acme_account_handler_modify(input_data: dict, responses: Iterab
                 "name": "test",
                 "contact": "test@example.com",
                 "directory": "https://example.com/directory",
-                "eab_hmac_key": "test_hmac_key",
-                "eab_kid": "test_kid",
+                "eab-hmac-key": "test_hmac_key",
+                "eab-kid": "test_kid",
                 "tos_url": "https://example.com/tos",
             },
             [
                 Response(
-                    command=["/usr/bin/pvesh", "create", "cluster/acme/account", "--name=test", "--contact=test@example.com", "--directory=https://example.com/directory", "--eab-hmac-key=test_hmac_key", "--eab-kid=test_kid", "--tos_url=https://example.com/tos", "--output-format=json"],
+                    command=["/usr/bin/pvesh", "create", "cluster/acme/account", "--contact=test@example.com", "--directory=https://example.com/directory", "--eab-hmac-key=test_hmac_key", "--eab-kid=test_kid", "--name=test", "--tos_url=https://example.com/tos", "--output-format=json"],
                     return_code=0,
                     stdout=b'{"name": "test", "contact": "test@example.com", "directory": "https://example.com/directory", "eab-hmac-key": "test_hmac_key", "eab-kid": "test_kid", "tos_url": "https://example.com/tos"}',
                     stderr=b'',
