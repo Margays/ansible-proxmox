@@ -10,23 +10,20 @@ from ..utils import create_client, Response
         pytest.param(
             {
                 "id": "test",
-                "type": "dns",
-                "api": "https://api.example.com",
-                "data": {"key": "value"},
-                "disable": False,
-                "nodes": ["node1", "node2"],
-                "validation_delay": 30,
+                "api":"cf",
+                "data":"CF_Account_ID=12345\nCF_Email=example@email.com\nCF_Token=token\nCF_Zone_ID=zone\n",
+                "type":"dns"
             },
             [
                 Response(
                     command=["/usr/bin/pvesh", "get", "cluster/acme/plugins/test", "--output-format=json"],
                     return_code=0,
-                    stdout=b'{"id": "test", "type": "dns", "api": "https://api.example.com", "data": {"key": "value"}, "disable": False, "nodes": ["node1", "node2"], "validation-delay": 30}',
+                    stdout=b'{"api":"cf","data":"CF_Account_ID=12345\\nCF_Email=example@email.com\\nCF_Token=token\\nCF_Zone_ID=zone\\n","digest":"aaa","plugin":"Cloudflare","type":"dns"}',
                     stderr=b'',
                 ),
             ],
             False,
-            id="not-modification",
+            id="no-changes",
         ),
         pytest.param(
             {
