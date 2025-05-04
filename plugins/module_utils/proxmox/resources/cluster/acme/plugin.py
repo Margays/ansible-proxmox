@@ -12,7 +12,7 @@ class ClusterAcmePlugin(Resource):
         self.data: Optional[str] = data.get("data", None)
         self.disable: Optional[bool] = data.get("disable", False)
         self.nodes: list[str] = data.get("nodes", [])
-        self.validation_delay: Optional[int] = data.get("validation-delay", 0)
+        self.validation_delay: Optional[int] = data.get("validation_delay", data.get("validation-delay", 0))
 
         self._mappings = {
             "validation_delay": "validation-delay",

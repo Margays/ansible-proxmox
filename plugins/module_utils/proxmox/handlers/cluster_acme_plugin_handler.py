@@ -1,4 +1,5 @@
 import re
+import base64
 from typing import Optional
 from ..client import Client
 from ...utils import AnsibleResult, AnsibleParams
@@ -18,6 +19,7 @@ class ClusterAcmePluginHandler(BaseHandler):
         try:
             request = self._client_class(f"{self._path}/{self._resource.id}")
             data = request.get()
+            data["data"] = base64.b64decode(data["data"]).decode()
             return ClusterAcmePlugin(data)
 
         except Exception as e:
@@ -33,7 +35,12 @@ class ClusterAcmePluginHandler(BaseHandler):
         request = self._client_class(f"{self._path}")
         for field, value in self._resource.serialize().items():
             if value:
-                request.add_option(field, value)
+                if field == "data":
+                    request.add_option(field, base64.b64encode(value.encode()).decode())
+                elif field == "nodes":
+                    request.add_option(field, ",".join(self._resource.nodes))
+                else:
+                    request.add_option(field, value)
 
         request.create()
         return AnsibleResult(status=True)
@@ -49,6 +56,9 @@ class ClusterAcmePluginHandler(BaseHandler):
     def modify(self, check: bool) -> AnsibleResult:
         lookup = self.lookup()
         updated_fields = self._resource.diff(lookup)
+        print(lookup.serialize())
+        print(self._resource.serialize())
+        print(updated_fields)
 
         if check or not updated_fields:
             return AnsibleResult(status=bool(updated_fields), changes=updated_fields)
@@ -57,8 +67,10 @@ class ClusterAcmePluginHandler(BaseHandler):
         for key, value in updated_fields.items():
             if key == "id":
                 continue
-
-            request.add_option(key, value)
+            elif key == "data":
+                request.add_option(key, base64.b64encode(value.encode()).decode())
+            else:
+                request.add_option(key, value)
 
         request.set()
         return AnsibleResult(status=True, changes=updated_fields)
